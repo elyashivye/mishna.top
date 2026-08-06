@@ -2,8 +2,10 @@
 require __DIR__ . '/../app/auth.php';
 require __DIR__ . '/../app/functions.php';
 
+$next = safeNextUrl($_GET['next'] ?? $_POST['next'] ?? null);
+
 if (currentUser()) {
-    header('Location: /dashboard.php');
+    header('Location: ' . $next);
     exit;
 }
 
@@ -16,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $result = registerUser($_POST['name'] ?? '', $_POST['email'] ?? '', $_POST['password'] ?? '');
         if ($result['ok']) {
-            header('Location: /dashboard.php');
+            header('Location: ' . $next);
             exit;
         }
         $error = $result['error'];
@@ -43,6 +45,7 @@ $pageTitle = 'הרשמה — משנה של נשמה';
         <?php endif; ?>
         <form method="post" class="space-y-4">
             <?= csrfField() ?>
+            <input type="hidden" name="next" value="<?= h($next) ?>">
             <div>
                 <label class="block text-sm text-ink/70 mb-1">שם מלא</label>
                 <input type="text" name="name" required maxlength="100" value="<?= h($_POST['name'] ?? '') ?>"
@@ -68,7 +71,7 @@ $pageTitle = 'הרשמה — משנה של נשמה';
             </button>
         </form>
         <p class="text-center text-sm text-ink/60 mt-4">
-            כבר יש לך חשבון? <a href="/login.php" class="text-gold-dark font-semibold hover:underline">התחברות</a>
+            כבר יש לך חשבון? <a href="/login.php?next=<?= urlencode($next) ?>" class="text-gold-dark font-semibold hover:underline">התחברות</a>
         </p>
     </div>
 </div>

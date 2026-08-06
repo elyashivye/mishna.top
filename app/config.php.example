@@ -6,4 +6,12 @@ return [
     'db_user' => 'u123456789_mishna',
     'db_pass' => 'CHANGE_ME',
     'app_env' => 'production', // 'local' | 'production'
+
+    // WhatsApp Cloud API של Meta — לתזכורות. השאירו ריק כדי להשאיר תזכורות WhatsApp כבויות.
+    // הקמה מלאה מתועדת ב-README (Meta Business Manager → WhatsApp → API Setup).
+    'whatsapp_phone_number_id' => '',
+    'whatsapp_access_token' => '',
+    'whatsapp_api_version' => 'v20.0',
+    'whatsapp_template_name' => 'daily_reminder',
+    'whatsapp_template_lang' => 'he',
 ];

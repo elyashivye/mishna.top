@@ -1,18 +1,15 @@
 <?php
 /**
  * סקריפט CLI חד-פעמי: מייבא את טקסט 63 מסכתות המשנה (עברית עם ניקוד)
- * מ-Sefaria-Export (Google Cloud Storage, ציבורי, ללא צורך במפתח API) אל בסיס הנתונים,
- * ובונה את מחזור "המשנה היומית" הגלובלי (daily_cycle).
+ * מ-Sefaria-Export (Google Cloud Storage, ציבורי, ללא צורך במפתח API) אל בסיס הנתונים.
+ * לוחות הלימוד האישיים (member_schedule) נבנים בזמן ריצה per-page, לא כאן.
  *
- * הרצה: php database/import_sefaria.php [--start-date=YYYY-MM-DD]
+ * הרצה: php database/import_sefaria.php
  */
 
 require __DIR__ . '/../app/db.php';
 
 $tractates = require __DIR__ . '/tractates_data.php';
-
-$options = getopt('', ['start-date::']);
-$startDate = $options['start-date'] ?? date('Y-m-d');
 
 function fetchJson(string $url): array
 {
@@ -93,18 +90,8 @@ foreach ($tractates as $t) {
     echo "{$chapterCount} פרקים, {$mishnaCount} משניות\n";
 }
 
-echo "בונה מחזור משנה יומית החל מ-{$startDate}...\n";
-$pdo->exec('DELETE FROM daily_cycle');
-$insertDaily = $pdo->prepare('INSERT INTO daily_cycle (study_date, mishna_id) VALUES (:d, :m)');
-$allIds = $pdo->query('SELECT id FROM mishnayot ORDER BY sort_order ASC')->fetchAll(PDO::FETCH_COLUMN);
-$date = new DateTime($startDate);
-foreach ($allIds as $mishnaId) {
-    $insertDaily->execute([':d' => $date->format('Y-m-d'), ':m' => $mishnaId]);
-    $date->modify('+1 day');
-}
-
 $pdo->commit();
-echo "הושלם: {$totalMishnayot} משניות יובאו, מחזור יומי נבנה ({$date->format('Y-m-d')} תאריך סיום).\n";
+echo "הושלם: {$totalMishnayot} משניות יובאו ב-" . count($tractates) . " מסכתות.\n";
 
 function buildUrl(array $t): string
 {

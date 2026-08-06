@@ -4,6 +4,7 @@ require __DIR__ . '/../app/functions.php';
 
 $user = requireLogin();
 $userId = (int) $user['id'];
+$page = requireCurrentPage($userId);
 
 $slug = $_GET['slug'] ?? '';
 $tractate = getTractateBySlug($slug);
@@ -29,7 +30,7 @@ include __DIR__ . '/../app/partials/page_start.php';
 
 <div class="mt-4">
     <a href="/tractates.php" class="inline-flex items-center gap-1 text-ink/60 hover:text-navy text-sm mb-4">
-        <?= icon('chevron-end', 'w-4 h-4') ?> חזרה למסכתות שלי
+        <?= icon('chevron-end', 'w-4 h-4') ?> <?= $page['mode'] === 'group' ? 'חזרה ללוח תפיסת המסכתות' : 'חזרה למסכתות שלי' ?>
     </a>
 
     <div class="card flex items-center gap-5 mb-6">

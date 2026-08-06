@@ -4,13 +4,15 @@ require __DIR__ . '/../app/functions.php';
 
 $user = requireLogin();
 $userId = (int) $user['id'];
+$page = requireCurrentPage($userId);
+$pageId = (int) $page['id'];
 
 $date = $_GET['date'] ?? date('Y-m-d');
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
     $date = date('Y-m-d');
 }
 
-$mishna = getTodayMishna($date);
+$mishna = getMemberTodayMishna($pageId, $userId, $date);
 $isCompleted = $mishna ? isMishnaCompletedByUser($userId, (int) $mishna['id']) : false;
 
 $prevDate = (new DateTime($date))->modify('-1 day')->format('Y-m-d');
@@ -28,7 +30,7 @@ include __DIR__ . '/../app/partials/page_start.php';
         </a>
         <div class="text-center">
             <h1 class="font-bold text-navy text-xl flex items-center gap-2 justify-center"><?= icon('sun', 'w-6 h-6 text-gold') ?> המשנה היומית</h1>
-            <p class="text-ink/50 text-sm mt-1"><?= $isToday ? 'היום' : h($date) ?></p>
+            <p class="text-ink/50 text-sm mt-1"><?= $isToday ? 'היום' : h($date) ?> · <?= h($page['name_he']) ?></p>
         </div>
         <a href="?date=<?= h($prevDate) ?>" class="btn-pill bg-white shadow-card text-navy">
             יום קודם <?= icon('chevron-start', 'w-4 h-4') ?>
@@ -62,7 +64,10 @@ include __DIR__ . '/../app/partials/page_start.php';
             </div>
         </div>
     <?php else: ?>
-        <div class="card text-center text-ink/60">לא נמצאה משנה לתאריך זה.</div>
+        <div class="card text-center text-ink/60">
+            עדיין לא תפסתם מסכת בעמוד הזה.
+            <a href="/tractates.php" class="text-gold-dark hover:underline">לכו ללוח תפיסת המסכתות</a>.
+        </div>
     <?php endif; ?>
 </div>
 

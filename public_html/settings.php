@@ -57,6 +57,11 @@ include __DIR__ . '/../app/partials/page_start.php';
         <div class="mb-4 rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3"><?= h($success) ?></div>
     <?php endif; ?>
 
+    <a href="/notifications.php" class="card mb-6 flex items-center justify-between hover:shadow-card-lg transition">
+        <span class="font-bold text-navy flex items-center gap-2"><?= icon('mail', 'w-5 h-5 text-gold') ?> תזכורות (WhatsApp / מייל)</span>
+        <?= icon('chevron-start', 'w-4 h-4 -rotate-180 text-ink/40') ?>
+    </a>
+
     <div class="card mb-6">
         <h2 class="font-bold text-navy mb-4 flex items-center gap-2"><?= icon('user', 'w-5 h-5') ?> פרופיל</h2>
         <form method="post" class="space-y-4">

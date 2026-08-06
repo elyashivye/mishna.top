@@ -18,6 +18,18 @@
   backdrop?.addEventListener('click', closeSidebar);
 })();
 
+// מחליף עמוד לימוד (סרגל צד)
+(function () {
+  const btn = document.getElementById('page-switcher-btn');
+  const menu = document.getElementById('page-switcher-menu');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu.classList.toggle('hidden');
+  });
+  document.addEventListener('click', () => menu.classList.add('hidden'));
+})();
+
 // תפריט משתמש נפתח
 (function () {
   const btn = document.getElementById('user-menu-btn');

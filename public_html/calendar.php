@@ -24,7 +24,7 @@ $hebrewMonthNames = [
 ];
 $monthLabel = $hebrewMonthNames[(int) $firstOfMonth->format('n')] . ' ' . $firstOfMonth->format('Y');
 
-$dedications = getUserDedications($userId);
+$myPages = getUserStudyPages($userId);
 
 $pageTitle = 'לוח זמנים — משנה של נשמה';
 include __DIR__ . '/../app/partials/page_start.php';
@@ -66,15 +66,15 @@ include __DIR__ . '/../app/partials/page_start.php';
         </div>
     </div>
 
-    <?php if ($dedications): ?>
+    <?php if ($myPages): ?>
         <div class="mt-8">
-            <h2 class="font-bold text-navy mb-3">תאריכים מההקדשות שלי</h2>
+            <h2 class="font-bold text-navy mb-3">עמודי הלימוד שלי</h2>
             <div class="card !p-0 overflow-hidden divide-y divide-gray-100">
-                <?php foreach ($dedications as $d): ?>
-                    <div class="flex items-center justify-between px-6 py-3">
-                        <span class="text-sm font-medium text-navy"><?= h($d['name_he']) ?></span>
-                        <span class="text-sm text-ink/60"><?= h($d['passing_date_he'] ?: '—') ?></span>
-                    </div>
+                <?php foreach ($myPages as $p): ?>
+                    <a href="/page.php?id=<?= (int) $p['id'] ?>" class="flex items-center justify-between px-6 py-3 hover:bg-cream transition">
+                        <span class="text-sm font-medium text-navy"><?= h($p['name_he']) ?></span>
+                        <span class="text-sm text-ink/60"><?= h($p['passing_date_he'] ?: 'יעד: ' . $p['target_end_date']) ?></span>
+                    </a>
                 <?php endforeach; ?>
             </div>
         </div>
