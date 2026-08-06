@@ -21,6 +21,7 @@ $pageId = (int) $page['id'];
 
 $userStats = getUserStats($userId); // רצף ימים גלובלי
 $pageStats = getPageStats($pageId, $userId);
+$dedicationDate = getDedicationDateDisplay($page);
 $today = getMemberTodayMishna($pageId, $userId);
 $todayCompleted = $today ? isMishnaCompletedByUser($userId, (int) $today['id']) : false;
 $myTractates = getMyClaimedTractatesWithProgress($pageId, $userId);
@@ -37,8 +38,20 @@ include __DIR__ . '/../app/partials/page_start.php';
         <div class="text-gold mb-2"><?= icon('candle', 'w-9 h-9') ?></div>
         <p class="text-ink/60 text-sm mb-1"><?= $page['dtype'] === 'refuah' ? 'לרפואת' : 'לעילוי נשמת' ?></p>
         <p class="font-bold text-navy text-lg leading-snug"><?= h($page['name_he']) ?></p>
-        <?php if ($page['passing_date_he']): ?>
-            <p class="text-ink/50 text-sm mt-1"><?= h($page['passing_date_he']) ?></p>
+        <?php if ($dedicationDate): ?>
+            <p class="text-ink/50 text-sm mt-1">
+                <?= h($dedicationDate['hebrew_display']) ?>
+                <?php if ($dedicationDate['gregorian_display']): ?>
+                    <span class="text-ink/35">(<?= h($dedicationDate['gregorian_display']) ?>)</span>
+                <?php endif; ?>
+            </p>
+            <?php if ($dedicationDate['days_until'] !== null): ?>
+                <p class="text-xs mt-1 <?= $dedicationDate['days_until'] <= 7 ? 'text-gold-dark font-semibold' : 'text-ink/40' ?>">
+                    <?= $page['dtype'] === 'refuah' ? 'האזכרה הבאה' : 'היארצייט הבא' ?> בעוד
+                    <?= $dedicationDate['days_until'] === 0 ? 'היום' : (int) $dedicationDate['days_until'] . ' ימים' ?>
+                    (<?= h($dedicationDate['next_occurrence']->format('Y-m-d')) ?>)
+                </p>
+            <?php endif; ?>
         <?php endif; ?>
         <?php if ($page['dtype'] === 'neshama'): ?>
             <p class="text-ink/40 text-xs mt-2">ת.נ.צ.ב.ה</p>

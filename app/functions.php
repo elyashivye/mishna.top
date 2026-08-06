@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/icons.php';
+require_once __DIR__ . '/hebrew_date.php';
 
 function h(?string $s): string
 {
@@ -221,6 +222,33 @@ function generateInviteCode(): string
     return $code;
 }
 
+/**
+ * גוזר את שדות התאריך העברי לשמירה מתוך קלט הטופס. שני מצבי קלט אפשריים:
+ * 'gregorian' (תאריך לועזי מדויק, ממנו נגזר התאריך העברי המקביל) או
+ * 'hebrew' (יום+חודש עברי ישירות, ללא תאריך לועזי ידוע).
+ */
+function resolveDedicationDateFields(array $data): array
+{
+    $mode = $data['date_input_mode'] ?? '';
+    if ($mode === 'gregorian' && !empty($data['passing_date_gregorian'])) {
+        $date = new DateTime($data['passing_date_gregorian']);
+        $parts = isHebrewCalendarAvailable() ? gregorianToHebrewParts($date) : null;
+        return [
+            'passing_date_gregorian' => $date->format('Y-m-d'),
+            'passing_hebrew_month' => $parts['month_name'] ?? null,
+            'passing_hebrew_day' => $parts['day'] ?? null,
+        ];
+    }
+    if ($mode === 'hebrew' && !empty($data['passing_hebrew_month']) && !empty($data['passing_hebrew_day'])) {
+        return [
+            'passing_date_gregorian' => null,
+            'passing_hebrew_month' => $data['passing_hebrew_month'],
+            'passing_hebrew_day' => (int) $data['passing_hebrew_day'],
+        ];
+    }
+    return ['passing_date_gregorian' => null, 'passing_hebrew_month' => null, 'passing_hebrew_day' => null];
+}
+
 function createStudyPage(int $ownerUserId, array $data): int
 {
     $pdo = db();
@@ -228,16 +256,19 @@ function createStudyPage(int $ownerUserId, array $data): int
     $targetEndDate = computeTargetEndDate($data['pace'], $startDate, $data['custom_end_date'] ?? null);
     $mode = ($data['mode'] ?? 'solo') === 'group' ? 'group' : 'solo';
     $inviteCode = $mode === 'group' ? generateInviteCode() : null;
+    $dateFields = resolveDedicationDateFields($data);
 
     $pdo->beginTransaction();
     $stmt = $pdo->prepare(
-        'INSERT INTO study_pages (owner_user_id, name_he, passing_date_he, dtype, notes, mode, pace, start_date, target_end_date, invite_code)
-         VALUES (:owner, :name, :date, :type, :notes, :mode, :pace, :start, :end, :code)'
+        'INSERT INTO study_pages (owner_user_id, name_he, passing_date_gregorian, passing_hebrew_month, passing_hebrew_day, dtype, notes, mode, pace, start_date, target_end_date, invite_code)
+         VALUES (:owner, :name, :dategreg, :hemonth, :heday, :type, :notes, :mode, :pace, :start, :end, :code)'
     );
     $stmt->execute([
         ':owner' => $ownerUserId,
         ':name' => $data['name_he'],
-        ':date' => $data['passing_date_he'] ?: null,
+        ':dategreg' => $dateFields['passing_date_gregorian'],
+        ':hemonth' => $dateFields['passing_hebrew_month'],
+        ':heday' => $dateFields['passing_hebrew_day'],
         ':type' => in_array($data['dtype'] ?? '', ['neshama', 'refuah'], true) ? $data['dtype'] : 'neshama',
         ':notes' => $data['notes'] ?: null,
         ':mode' => $mode,
@@ -266,6 +297,29 @@ function createStudyPage(int $ownerUserId, array $data): int
     }
 
     return $pageId;
+}
+
+/**
+ * מחזיר מידע תצוגה על תאריך ההקדשה: מחרוזת עברית, תאריך לועזי (אם ידוע),
+ * והיארצייט/אזכרה הבאה (אם יש חודש+יום עברי שמורים). null אם אין תאריך כלל.
+ */
+function getDedicationDateDisplay(array $page): ?array
+{
+    $month = $page['passing_hebrew_month'] ?? null;
+    $day = $page['passing_hebrew_day'] ?? null;
+    if (!$month || !$day) {
+        return null;
+    }
+    $hebrewDisplay = formatHebrewDayMonth($month, (int) $day);
+    $nextOccurrence = isHebrewCalendarAvailable() ? findNextHebrewAnniversary($month, (int) $day) : null;
+    $daysUntil = $nextOccurrence ? (int) (new DateTime('today'))->diff($nextOccurrence)->days : null;
+
+    return [
+        'hebrew_display' => $hebrewDisplay,
+        'gregorian_display' => $page['passing_date_gregorian'] ?? null,
+        'next_occurrence' => $nextOccurrence,
+        'days_until' => $daysUntil,
+    ];
 }
 
 function getStudyPage(int $id): ?array

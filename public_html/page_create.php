@@ -14,15 +14,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nameHe = trim($_POST['name_he'] ?? '');
         $pace = $_POST['pace'] ?? 'year';
         $customEndDate = trim($_POST['custom_end_date'] ?? '');
+        $dateMode = $_POST['date_input_mode'] ?? '';
+        $gregDate = trim($_POST['passing_date_gregorian'] ?? '');
+        $heMonth = $_POST['passing_hebrew_month'] ?? '';
+        $heDay = $_POST['passing_hebrew_day'] ?? '';
 
         if ($nameHe === '') {
             $error = 'נא להזין שם.';
         } elseif ($pace === 'custom' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $customEndDate)) {
             $error = 'נא לבחור תאריך יעד תקין לסיום.';
+        } elseif ($dateMode === 'gregorian' && $gregDate !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $gregDate)) {
+            $error = 'תאריך לא תקין.';
+        } elseif ($dateMode === 'hebrew' && $heMonth !== '' && !array_key_exists($heMonth, HEBREW_MONTH_NAMES_HE)) {
+            $error = 'חודש עברי לא תקין.';
         } else {
             $pageId = createStudyPage($userId, [
                 'name_he' => $nameHe,
-                'passing_date_he' => trim($_POST['passing_date_he'] ?? ''),
+                'date_input_mode' => $dateMode,
+                'passing_date_gregorian' => $gregDate,
+                'passing_hebrew_month' => $heMonth,
+                'passing_hebrew_day' => $heDay,
                 'dtype' => $_POST['dtype'] ?? 'neshama',
                 'notes' => trim($_POST['notes'] ?? ''),
                 'mode' => $_POST['mode'] ?? 'solo',
@@ -68,9 +79,37 @@ include __DIR__ . '/../app/partials/page_start.php';
                            class="w-full rounded-lg border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gold">
                 </div>
                 <div>
-                    <label class="block text-sm text-ink/70 mb-1">תאריך פטירה / לידה (עברי, אופציונלי)</label>
-                    <input type="text" name="passing_date_he" maxlength="60" placeholder="לדוגמה: י״ד שבט תשע״ט"
-                           class="w-full rounded-lg border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gold">
+                    <label class="block text-sm text-ink/70 mb-2">תאריך פטירה (אופציונלי)</label>
+                    <div class="flex gap-3 mb-3">
+                        <label class="flex items-center gap-1.5 text-sm">
+                            <input type="radio" name="date_input_mode" value="" checked onchange="toggleDateMode()"> ללא תאריך
+                        </label>
+                        <label class="flex items-center gap-1.5 text-sm">
+                            <input type="radio" name="date_input_mode" value="gregorian" onchange="toggleDateMode()"> יש לי תאריך לועזי
+                        </label>
+                        <label class="flex items-center gap-1.5 text-sm">
+                            <input type="radio" name="date_input_mode" value="hebrew" onchange="toggleDateMode()"> יש לי רק תאריך עברי
+                        </label>
+                    </div>
+                    <div id="date-mode-gregorian" class="hidden">
+                        <input type="date" name="passing_date_gregorian"
+                               class="rounded-lg border border-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gold">
+                        <p class="text-xs text-ink/50 mt-1">התאריך העברי המקביל יחושב אוטומטית ויוצג בעמוד.</p>
+                    </div>
+                    <div id="date-mode-hebrew" class="hidden flex gap-2 items-center">
+                        <select name="passing_hebrew_day" class="rounded-lg border border-gray-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-gold">
+                            <option value="">יום</option>
+                            <?php for ($d = 1; $d <= 30; $d++): ?>
+                                <option value="<?= $d ?>"><?= h(hebrewDayGematria($d)) ?> (<?= $d ?>)</option>
+                            <?php endfor; ?>
+                        </select>
+                        <select name="passing_hebrew_month" class="rounded-lg border border-gray-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-gold">
+                            <option value="">חודש</option>
+                            <?php foreach (HEBREW_MONTH_ORDER as $mn): ?>
+                                <option value="<?= h($mn) ?>"><?= h(HEBREW_MONTH_NAMES_HE[$mn]) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm text-ink/70 mb-1">הערה (אופציונלי)</label>
@@ -120,5 +159,13 @@ include __DIR__ . '/../app/partials/page_start.php';
         </button>
     </form>
 </div>
+
+<script>
+function toggleDateMode() {
+    const mode = document.querySelector('input[name="date_input_mode"]:checked').value;
+    document.getElementById('date-mode-gregorian').classList.toggle('hidden', mode !== 'gregorian');
+    document.getElementById('date-mode-hebrew').classList.toggle('hidden', mode !== 'hebrew');
+}
+</script>
 
 <?php include __DIR__ . '/../app/partials/page_end.php'; ?>

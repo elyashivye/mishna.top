@@ -26,12 +26,30 @@ $monthLabel = $hebrewMonthNames[(int) $firstOfMonth->format('n')] . ' ' . $first
 
 $myPages = getUserStudyPages($userId);
 
+$yahrzeitDatesInMonth = [];
+if (isHebrewCalendarAvailable()) {
+    foreach ($myPages as $p) {
+        if (!$p['passing_hebrew_month'] || !$p['passing_hebrew_day']) {
+            continue;
+        }
+        $occ = findNextHebrewAnniversary($p['passing_hebrew_month'], (int) $p['passing_hebrew_day'], $firstOfMonth);
+        if ($occ && $occ->format('Y-m') === $month) {
+            $yahrzeitDatesInMonth[$occ->format('Y-m-d')][] = $p['name_he'];
+        }
+    }
+}
+
 $pageTitle = 'לוח זמנים — משנה של נשמה';
 include __DIR__ . '/../app/partials/page_start.php';
 ?>
 
 <div class="mt-4">
-    <h1 class="font-bold text-navy text-xl mb-6 flex items-center gap-2"><?= icon('calendar', 'w-6 h-6 text-gold') ?> לוח זמנים</h1>
+    <h1 class="font-bold text-navy text-xl mb-1 flex items-center gap-2"><?= icon('calendar', 'w-6 h-6 text-gold') ?> לוח זמנים</h1>
+    <?php if (isHebrewCalendarAvailable()): ?>
+        <p class="text-ink/50 text-sm mb-6">היום: <?= h(todayHebrewDateDisplay()) ?></p>
+    <?php else: ?>
+        <div class="mb-6"></div>
+    <?php endif; ?>
 
     <div class="card">
         <div class="flex items-center justify-between mb-5">
@@ -52,17 +70,23 @@ include __DIR__ . '/../app/partials/page_start.php';
                 $dateStr = $month . '-' . str_pad((string) $day, 2, '0', STR_PAD_LEFT);
                 $studied = in_array($dateStr, $studyDays, true);
                 $isToday = $dateStr === $today;
+                $yahrzeitNames = $yahrzeitDatesInMonth[$dateStr] ?? null;
                 ?>
                 <div class="aspect-square rounded-lg flex items-center justify-center text-sm relative
                             <?= $studied ? 'bg-gold text-white font-bold' : 'bg-cream-dark text-ink/70' ?>
-                            <?= $isToday ? 'ring-2 ring-navy' : '' ?>">
+                            <?= $isToday ? 'ring-2 ring-navy' : '' ?>"
+                     <?= $yahrzeitNames ? 'title="יארצייט: ' . h(implode(', ', $yahrzeitNames)) . '"' : '' ?>>
                     <?= $day ?>
+                    <?php if ($yahrzeitNames): ?>
+                        <span class="absolute -top-1.5 -start-1.5 text-gold-dark"><?= icon('candle', 'w-4 h-4') ?></span>
+                    <?php endif; ?>
                 </div>
             <?php endfor; ?>
         </div>
-        <div class="flex items-center gap-2 text-xs text-ink/50 mt-4">
-            <span class="w-3 h-3 rounded bg-gold inline-block"></span> יום לימוד
-            <span class="w-3 h-3 rounded ring-2 ring-navy inline-block ms-4"></span> היום
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink/50 mt-4">
+            <span><span class="w-3 h-3 rounded bg-gold inline-block align-middle ms-1"></span> יום לימוד</span>
+            <span><span class="w-3 h-3 rounded ring-2 ring-navy inline-block align-middle ms-1"></span> היום</span>
+            <span><?= icon('candle', 'w-3.5 h-3.5 text-gold-dark inline align-middle ms-1') ?> יארצייט</span>
         </div>
     </div>
 
@@ -71,9 +95,12 @@ include __DIR__ . '/../app/partials/page_start.php';
             <h2 class="font-bold text-navy mb-3">עמודי הלימוד שלי</h2>
             <div class="card !p-0 overflow-hidden divide-y divide-gray-100">
                 <?php foreach ($myPages as $p): ?>
+                    <?php $dd = getDedicationDateDisplay($p); ?>
                     <a href="/page.php?id=<?= (int) $p['id'] ?>" class="flex items-center justify-between px-6 py-3 hover:bg-cream transition">
                         <span class="text-sm font-medium text-navy"><?= h($p['name_he']) ?></span>
-                        <span class="text-sm text-ink/60"><?= h($p['passing_date_he'] ?: 'יעד: ' . $p['target_end_date']) ?></span>
+                        <span class="text-sm text-ink/60">
+                            <?= $dd ? h($dd['hebrew_display']) : 'יעד: ' . h($p['target_end_date']) ?>
+                        </span>
                     </a>
                 <?php endforeach; ?>
             </div>
