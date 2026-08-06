@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Heebo', 'Arial Hebrew', system-ui, sans-serif;
+  }
+  body {
+    background-color: #F6EFE3;
+    color: #26313F;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-2xl shadow-card p-6;
+  }
+  .btn-pill {
+    @apply inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition;
+  }
+  .nav-link {
+    @apply flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-[15px] text-white/80 hover:bg-white/10 hover:text-white transition;
+  }
+  .nav-link.active {
+    @apply bg-white text-navy font-semibold hover:bg-white hover:text-navy;
+  }
+}
+
+/* עיגול התקדמות (progress ring) מבוסס conic-gradient, נשלט ע"י --pct ו--color */
+.progress-ring {
+  --pct: 0;
+  --ring-color: #C6A155;
+  --track-color: #EFE3CD;
+  background: conic-gradient(var(--ring-color) calc(var(--pct) * 1%), var(--track-color) 0);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.progress-ring > .progress-ring-inner {
+  background: #fff;
+  border-radius: 9999px;
+}

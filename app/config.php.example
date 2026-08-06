@@ -1,0 +1,9 @@
+<?php
+// העתק קובץ זה ל-config.php ומלא את פרטי בסיס הנתונים שלך בהוסטינגר (hPanel → Databases → MySQL Databases).
+return [
+    'db_host' => 'localhost',
+    'db_name' => 'u123456789_mishna',
+    'db_user' => 'u123456789_mishna',
+    'db_pass' => 'CHANGE_ME',
+    'app_env' => 'production', // 'local' | 'production'
+];

@@ -1,0 +1,16 @@
+{
+  "name": "build",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tailwindcss -c tailwind.config.js -i input.css -o ../public_html/assets/css/app.css --minify",
+    "watch": "tailwindcss -c tailwind.config.js -i input.css -o ../public_html/assets/css/app.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  }
+}
