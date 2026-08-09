@@ -83,10 +83,16 @@ interface SefariaResponse {
   text: string[][];
 }
 
-async function fetchSefariaJson(url: string): Promise<SefariaResponse> {
+/** בפירוש ברטנורא כל משנה ממופה למערך של קטעי "דיבור המתחיל" (לא מחרוזת בודדת). */
+interface BartenuraSefariaResponse {
+  title: string;
+  text: string[][][];
+}
+
+async function fetchSefariaJson<T extends { text: unknown }>(url: string): Promise<T> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`נכשל בשליפת ${url}: HTTP ${res.status}`);
-  const data = (await res.json()) as SefariaResponse;
+  const data = (await res.json()) as T;
   if (!data?.text) throw new Error(`תגובה לא תקינה מ: ${url}`);
   return data;
 }
@@ -99,7 +105,7 @@ export async function runSefariaImport(onProgress?: (message: string) => void): 
 
   for (const t of TRACTATES_DATA) {
     onProgress?.(`מייבא: ${t.name_he} (${t.title_en})...`);
-    const data = await fetchSefariaJson(buildSefariaUrl(t));
+    const data = await fetchSefariaJson<SefariaResponse>(buildSefariaUrl(t));
     const chapters = data.text;
     const chapterCount = chapters.length;
     const mishnaCount = chapters.reduce((sum, ch) => sum + ch.length, 0);
@@ -156,6 +162,21 @@ function stripHtmlTags(text: string): string {
 }
 
 /**
+ * כל "דיבור המתחיל" בברטנורא מגיע מ-Sefaria כ-<b>לֶמָּה</b>. גוף ההסבר.
+ * מפרק לזוג {lemma, body} כדי לאפשר הדגשת הלמה והפרדת פסקאות בתצוגה,
+ * בלי להזדקק ל-dangerouslySetInnerHTML על טקסט חיצוני.
+ */
+function parseBartenuraSegment(raw: string): { lemma: string | null; body: string } {
+  const match = raw.match(/^<b>([\s\S]*?)<\/b>\.?\s*/);
+  if (match) {
+    const lemma = stripHtmlTags(match[1]).replace(/\.$/, "");
+    const body = stripHtmlTags(raw.slice(match[0].length));
+    return { lemma: lemma || null, body };
+  }
+  return { lemma: null, body: stripHtmlTags(raw) };
+}
+
+/**
  * מייבא/מעדכן את פירוש ר' עובדיה מברטנורא (רישונים, פומבי-דומיין — נפטר ~1515)
  * על כל 63 המסכתות, מ-Sefaria-Export. אידמפוטנטי; מתאים מסכתות/פרקים/משניות
  * לפי (tractate slug, chapter, mishna_num) שכבר קיימים מ-runSefariaImport.
@@ -172,9 +193,9 @@ export async function runBartenuraImport(onProgress?: (message: string) => void)
     if (!tractateRow) continue; // המסכתה עצמה עוד לא יובאה — יש להריץ קודם את runSefariaImport
     const tractateId = tractateRow.id;
 
-    let data: SefariaResponse;
+    let data: BartenuraSefariaResponse;
     try {
-      data = await fetchSefariaJson(buildBartenuraUrl(t));
+      data = await fetchSefariaJson<BartenuraSefariaResponse>(buildBartenuraUrl(t));
     } catch {
       continue; // לא כל המסכתות/מהדורות זהות; דילוג על מסכת בודדת לא אמור לקרות בפועל (וידאנו 63/63)
     }
@@ -185,13 +206,14 @@ export async function runBartenuraImport(onProgress?: (message: string) => void)
       for (let mishnaIndex = 0; mishnaIndex < mishnayotInChapter.length; mishnaIndex++) {
         const chapterNum = chapterIndex + 1;
         const mishnaNum = mishnaIndex + 1;
-        const raw = mishnayotInChapter[mishnaIndex];
-        const text = raw ? stripHtmlTags(Array.isArray(raw) ? raw.join(" ") : raw) : "";
-        if (!text) continue;
+        const rawSegments = mishnayotInChapter[mishnaIndex];
+        if (!rawSegments || rawSegments.length === 0) continue;
+        const segments = rawSegments.map(parseBartenuraSegment).filter((s) => s.body);
+        if (segments.length === 0) continue;
 
         await pool.query(
           `UPDATE mishnayot SET bartenura_he = ? WHERE tractate_id = ? AND chapter = ? AND mishna_num = ?`,
-          [text, tractateId, chapterNum, mishnaNum]
+          [JSON.stringify(segments), tractateId, chapterNum, mishnaNum]
         );
         totalMishnayot++;
       }

@@ -1,6 +1,6 @@
 import "server-only";
 import { query, queryOne, execute } from "./db";
-import type { Achievement, Mishna, Tractate, UserStats } from "./types";
+import type { Achievement, BartenuraSegment, Mishna, Tractate, UserStats } from "./types";
 
 export async function isMishnaCompletedByUser(userId: number, mishnaId: number): Promise<boolean> {
   const row = await queryOne(
@@ -179,6 +179,17 @@ export async function getMishnayotForTractate(tractateId: number, userId: number
      ORDER BY m.chapter ASC, m.mishna_num ASC`,
     [userId, tractateId]
   );
+}
+
+/** מפרק את bartenura_he (JSON של {lemma, body}[] שנשמר בזמן הייבוא) לתצוגה. */
+export function parseBartenuraSegments(json: string | null): BartenuraSegment[] | null {
+  if (!json) return null;
+  try {
+    const parsed = JSON.parse(json);
+    return Array.isArray(parsed) ? (parsed as BartenuraSegment[]) : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getUserStudyDaysInMonth(userId: number, yearMonth: string): Promise<string[]> {

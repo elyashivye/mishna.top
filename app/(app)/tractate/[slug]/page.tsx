@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireLogin } from "@/lib/auth";
 import { requireCurrentPage } from "@/lib/current-page";
-import { getTractateBySlug, getMishnayotForTractate } from "@/lib/progress";
+import { getTractateBySlug, getMishnayotForTractate, parseBartenuraSegments } from "@/lib/progress";
 import { getTractateClaim } from "@/lib/study-pages";
 import { Icon } from "@/components/Icon";
 import { MishnaChecklist } from "@/components/MishnaChecklist";
@@ -23,6 +23,7 @@ export default async function TractatePage({ params }: { params: Promise<{ slug:
     ...m,
     chapterHe: gematriyaNum(m.chapter),
     mishnaNumHe: gematriyaNum(m.mishna_num),
+    bartenura: parseBartenuraSegments(m.bartenura_he),
   }));
   const learned = mishnayot.filter((m) => m.progress_id !== null).length;
   const percent = mishnayot.length > 0 ? Math.round((learned / mishnayot.length) * 100) : 0;

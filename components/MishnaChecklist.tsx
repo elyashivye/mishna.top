@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "./Icon";
 import { toggleMishnaAction, toggleChapterAction } from "@/lib/actions/progress-actions";
+import type { BartenuraSegment } from "@/lib/types";
 
 export interface ChecklistMishna {
   id: number;
@@ -12,7 +13,7 @@ export interface ChecklistMishna {
   mishna_num: number;
   mishnaNumHe: string;
   text_he: string | null;
-  bartenura_he: string | null;
+  bartenura: BartenuraSegment[] | null;
   progress_id: number | null;
 }
 
@@ -129,7 +130,7 @@ export function MishnaChecklist({ mishnayot, readOnly }: { mishnayot: ChecklistM
                         </span>
                       </div>
                     </div>
-                    {m.bartenura_he && (
+                    {m.bartenura && m.bartenura.length > 0 && (
                       <div className="ms-9 mt-2">
                         <button
                           type="button"
@@ -139,9 +140,14 @@ export function MishnaChecklist({ mishnayot, readOnly }: { mishnayot: ChecklistM
                           {isExpanded ? "הסתרת פירוש ברטנורא" : "הצגת פירוש ברטנורא"}
                         </button>
                         {isExpanded && (
-                          <p className="mt-2 text-sm text-ink/70 leading-relaxed bg-cream rounded-lg p-3 border border-cream-dark">
-                            {m.bartenura_he}
-                          </p>
+                          <div className="mt-2 text-sm text-ink/70 leading-relaxed bg-cream rounded-lg p-3 border border-cream-dark space-y-2">
+                            {m.bartenura.map((seg, i) => (
+                              <p key={i}>
+                                {seg.lemma && <b className="text-navy">{seg.lemma}. </b>}
+                                {seg.body}
+                              </p>
+                            ))}
+                          </div>
                         )}
                       </div>
                     )}

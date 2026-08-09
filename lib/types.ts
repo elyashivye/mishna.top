@@ -85,6 +85,11 @@ export interface Achievement {
   sort_order: number;
 }
 
+export interface BartenuraSegment {
+  lemma: string | null;
+  body: string;
+}
+
 export interface NotificationPreferences {
   user_id: number;
   whatsapp_enabled: number;
