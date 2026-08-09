@@ -32,7 +32,18 @@ export async function GET(request: Request) {
   const step = url.searchParams.get("step") ?? "all";
 
   if (!process.env.SETUP_SECRET || secret !== process.env.SETUP_SECRET) {
-    return htmlPage("שגיאת הרשאה", "<h1>גישה נדחתה</h1><p>סוד ההקמה שגוי או חסר.</p>", false);
+    const serverLen = process.env.SETUP_SECRET?.length ?? 0;
+    const sentLen = secret?.length ?? 0;
+    return htmlPage(
+      "שגיאת הרשאה",
+      `<h1>גישה נדחתה</h1><p>סוד ההקמה שגוי או חסר.</p>
+       <p style="color:#6b7280;font-size:.85em">
+         אבחון (לא חושף את הערכים עצמם):<br>
+         SETUP_SECRET מוגדר בשרת: ${serverLen > 0 ? `כן (${serverLen} תווים)` : "לא / ריק"}<br>
+         סוד שהתקבל בקישור: ${sentLen > 0 ? `כן (${sentLen} תווים)` : "לא נשלח"}
+       </p>`,
+      false
+    );
   }
 
   try {
