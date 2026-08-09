@@ -1,18 +1,18 @@
 import { isGoogleAuthConfigured } from "@/lib/services/google-oauth";
 
-export function GoogleSignInButton({ next }: { next: string }) {
+export function GoogleSignInButton({ next, mode = "login" }: { next: string; mode?: "login" | "register" }) {
   if (!isGoogleAuthConfigured()) return null;
 
   return (
     <>
-      <div className="flex items-center gap-3 my-4">
+      <div className="flex items-center gap-3 my-3">
         <div className="flex-1 h-px bg-gray-200" />
         <span className="text-xs text-ink/40">או</span>
         <div className="flex-1 h-px bg-gray-200" />
       </div>
       <a
         href={`/auth/google?next=${encodeURIComponent(next)}`}
-        className="w-full flex items-center justify-center gap-2.5 rounded-lg border border-gray-200 py-2.5 font-medium text-ink/80 hover:bg-cream transition"
+        className="w-full flex items-center justify-center gap-2.5 rounded-lg border border-gray-200 py-2 font-medium text-ink/80 hover:bg-cream transition"
       >
         <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
           <path
@@ -29,7 +29,7 @@ export function GoogleSignInButton({ next }: { next: string }) {
             d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.45-3.45C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.28 6.57l4.03 3.11C6.25 6.86 8.89 4.75 12 4.75z"
           />
         </svg>
-        התחברות עם Google
+        {mode === "register" ? "הרשמה באמצעות Google" : "התחברות עם Google"}
       </a>
     </>
   );
