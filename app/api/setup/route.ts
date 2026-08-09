@@ -30,6 +30,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const secret = url.searchParams.get("secret");
   const step = url.searchParams.get("step") ?? "all";
+  const publicOrigin = (process.env.APP_URL ?? url.origin).replace(/\/$/, "");
 
   if (!process.env.SETUP_SECRET || secret !== process.env.SETUP_SECRET) {
     const serverLen = process.env.SETUP_SECRET?.length ?? 0;
@@ -68,7 +69,7 @@ export async function GET(request: Request) {
         "ההקמה הצליחה",
         `<h1>הטבלאות נוצרו בהצלחה ✅</h1>
          <p>עכשיו הריצו את ייבוא התוכן (לוקח כמה דקות):</p>
-         <p><a href="/api/setup?secret=${encodeURIComponent(secret)}&step=mishnayot">${url.origin}/api/setup?secret=***&amp;step=mishnayot</a></p>`,
+         <p><a href="/api/setup?secret=${encodeURIComponent(secret)}&step=mishnayot">${publicOrigin}/api/setup?secret=***&amp;step=mishnayot</a></p>`,
         true
       );
     }
@@ -79,7 +80,7 @@ export async function GET(request: Request) {
         "הייבוא הצליח",
         `<h1>תוכן המשניות יובא בהצלחה ✅</h1>
          <p>${result.tractates} מסכתות, ${result.mishnayot} משניות.</p>
-         <p>המערכת מוכנה לשימוש: <a href="/register">${url.origin}/register</a></p>`,
+         <p>המערכת מוכנה לשימוש: <a href="/register">${publicOrigin}/register</a></p>`,
         true
       );
     }
@@ -91,7 +92,7 @@ export async function GET(request: Request) {
       "ההקמה הושלמה",
       `<h1>ההקמה הושלמה בהצלחה ✅</h1>
        <p>הטבלאות נוצרו, ו-${result.tractates} מסכתות (${result.mishnayot} משניות) יובאו.</p>
-       <p>המערכת מוכנה לשימוש: <a href="/register">${url.origin}/register</a></p>
+       <p>המערכת מוכנה לשימוש: <a href="/register">${publicOrigin}/register</a></p>
        <p style="color:#6b7280;font-size:.85em">מומלץ כעת למחוק את משתנה הסביבה <code>SETUP_SECRET</code> בהוסטינגר.</p>`,
       true
     );
