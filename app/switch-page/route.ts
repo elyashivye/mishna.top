@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireLogin } from "@/lib/auth";
 import { isPageMember } from "@/lib/study-pages";
 import { setCurrentPageId } from "@/lib/current-page";
+import { absoluteUrl } from "@/lib/url";
 
 export async function GET(request: Request) {
   const user = await requireLogin();
@@ -12,5 +13,5 @@ export async function GET(request: Request) {
     await setCurrentPageId(id);
   }
 
-  return NextResponse.redirect(new URL("/page", request.url));
+  return NextResponse.redirect(absoluteUrl("/page", request.url));
 }

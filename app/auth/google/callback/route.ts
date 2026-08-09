@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { exchangeGoogleCode, fetchGoogleUserInfo, isGoogleAuthConfigured } from "@/lib/services/google-oauth";
 import { findOrCreateGoogleUser } from "@/lib/auth";
-import { safeNextUrl } from "@/lib/url";
+import { safeNextUrl, absoluteUrl } from "@/lib/url";
 
 function loginError(request: Request, message: string): NextResponse {
-  return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(message)}`, request.url));
+  return NextResponse.redirect(absoluteUrl(`/login?error=${encodeURIComponent(message)}`, request.url));
 }
 
 export async function GET(request: Request) {
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
 
     await findOrCreateGoogleUser({ googleId: profile.sub, email: profile.email, name: profile.name || profile.email });
 
-    const response = NextResponse.redirect(new URL(next, request.url));
+    const response = NextResponse.redirect(absoluteUrl(next, request.url));
     response.cookies.delete("google_oauth_state");
     return response;
   } catch (err) {
