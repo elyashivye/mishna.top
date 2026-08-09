@@ -6,6 +6,7 @@ import { getTractateClaim } from "@/lib/study-pages";
 import { Icon } from "@/components/Icon";
 import { MishnaChecklist } from "@/components/MishnaChecklist";
 import { ClaimTractateButton } from "@/components/ClaimTractateButton";
+import { gematriyaNum } from "@/lib/hebrew-date";
 
 export default async function TractatePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -17,7 +18,12 @@ export default async function TractatePage({ params }: { params: Promise<{ slug:
 
   const claim = await getTractateClaim(page.id, tractate.id);
 
-  const mishnayot = await getMishnayotForTractate(tractate.id, user.id);
+  const mishnayotRaw = await getMishnayotForTractate(tractate.id, user.id);
+  const mishnayot = mishnayotRaw.map((m) => ({
+    ...m,
+    chapterHe: gematriyaNum(m.chapter),
+    mishnaNumHe: gematriyaNum(m.mishna_num),
+  }));
   const learned = mishnayot.filter((m) => m.progress_id !== null).length;
   const percent = mishnayot.length > 0 ? Math.round((learned / mishnayot.length) * 100) : 0;
 

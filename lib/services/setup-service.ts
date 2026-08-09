@@ -31,7 +31,7 @@ async function columnExists(table: string, column: string): Promise<boolean> {
   return (row?.c ?? 0) > 0;
 }
 
-/** מיגרציות אידמפוטנטיות למסדים שכבר קיימים מלפני תמיכת Google Sign-In. */
+/** מיגרציות אידמפוטנטיות למסדים שכבר קיימים מלפני תמיכת Google Sign-In / תצוגת תאריך. */
 async function runSchemaMigrations(): Promise<void> {
   if (!(await columnExists("users", "google_id"))) {
     await execute("ALTER TABLE users ADD COLUMN google_id VARCHAR(64) NULL UNIQUE AFTER email");
@@ -42,6 +42,11 @@ async function runSchemaMigrations(): Promise<void> {
   );
   if (row?.IS_NULLABLE === "NO") {
     await execute("ALTER TABLE users MODIFY password_hash VARCHAR(255) NULL");
+  }
+  if (!(await columnExists("users", "date_display"))) {
+    await execute(
+      "ALTER TABLE users ADD COLUMN date_display ENUM('hebrew','both') NOT NULL DEFAULT 'both' AFTER google_id"
+    );
   }
 }
 

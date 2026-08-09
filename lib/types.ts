@@ -4,6 +4,7 @@ export interface User {
   email: string;
   password_hash: string | null;
   google_id: string | null;
+  date_display: "hebrew" | "both";
   streak_count: number;
   longest_streak: number;
   last_study_date: string | null;

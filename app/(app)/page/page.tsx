@@ -14,11 +14,13 @@ import { Icon } from "@/components/Icon";
 import { CompleteTodayButton } from "@/components/CompleteTodayButton";
 import { ListenShareButtons } from "@/components/ListenShareButtons";
 import { CopyInviteButton } from "@/components/CopyInviteButton";
+import { formatDisplayDate, formatHebrewDateFull, gematriyaNum } from "@/lib/hebrew-date";
 
 export default async function PageDashboard() {
   const user = await requireLogin();
   const page = await requireCurrentPage(user.id);
   const pageId = page.id;
+  const showGregorian = user.date_display === "both";
 
   const userStats = await getUserStats(user.id);
   const pageStats = await getPageStats(pageId, user.id);
@@ -47,7 +49,7 @@ export default async function PageDashboard() {
             <>
               <p className="text-ink/50 text-sm mt-1">
                 {dedicationDate.hebrew_display}
-                {dedicationDate.gregorian_display && (
+                {showGregorian && dedicationDate.gregorian_display && (
                   <span className="text-ink/35"> ({dedicationDate.gregorian_display})</span>
                 )}
               </p>
@@ -59,7 +61,8 @@ export default async function PageDashboard() {
                 >
                   {page.dtype === "refuah" ? "האזכרה הבאה" : "היארצייט הבא"} בעוד{" "}
                   {dedicationDate.days_until === 0 ? "היום" : `${dedicationDate.days_until} ימים`} (
-                  {dedicationDate.next_occurrence.toISOString().slice(0, 10)})
+                  {formatHebrewDateFull(dedicationDate.next_occurrence)}
+                  {showGregorian && ` · ${dedicationDate.next_occurrence.toISOString().slice(0, 10)}`})
                 </p>
               )}
             </>
@@ -67,7 +70,7 @@ export default async function PageDashboard() {
           {page.dtype === "neshama" && <p className="text-ink/40 text-xs mt-2">ת.נ.צ.ב.ה</p>}
           <p className="text-xs text-ink/40 mt-3">
             {page.mode === "group" ? `עמוד קבוצתי · ${members.length} חברים` : "עמוד לימוד אישי"} · יעד לסיום:{" "}
-            {page.target_end_date}
+            {formatDisplayDate(page.target_end_date, user.date_display)}
           </p>
         </div>
 
@@ -161,7 +164,7 @@ export default async function PageDashboard() {
           {today ? (
             <>
               <p className="font-semibold text-navy mb-2">
-                מסכת {today.tractate_name} — פרק {today.chapter}, משנה {today.mishna_num}
+                מסכת {today.tractate_name} — פרק {gematriyaNum(today.chapter)}, משנה {gematriyaNum(today.mishna_num)}
               </p>
               <p className="text-ink/80 leading-loose text-[17px]">{today.text_he}</p>
               <ListenShareButtons text={today.text_he ?? ""} shareUrl="/daily" />

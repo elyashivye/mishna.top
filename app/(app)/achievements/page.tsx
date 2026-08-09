@@ -1,6 +1,7 @@
 import { requireLogin } from "@/lib/auth";
 import { getUserAchievements } from "@/lib/progress";
 import { Icon } from "@/components/Icon";
+import { formatDisplayDate } from "@/lib/hebrew-date";
 
 export default async function AchievementsPage() {
   const user = await requireLogin();
@@ -31,7 +32,7 @@ export default async function AchievementsPage() {
               <p className="text-xs text-ink/50 mb-3">{a.description}</p>
               {a.earned ? (
                 <span className="text-xs text-gold-dark font-semibold">
-                  הושג {a.earned_at ? `· ${new Date(a.earned_at).toISOString().slice(0, 10)}` : ""}
+                  הושג {a.earned_at ? `· ${formatDisplayDate(a.earned_at.slice(0, 10), user.date_display)}` : ""}
                 </span>
               ) : (
                 <div className="w-full">

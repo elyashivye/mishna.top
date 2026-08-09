@@ -6,6 +6,7 @@ import { getMemberTodayMishna, getMemberScheduleUpcoming } from "@/lib/study-pag
 import { Icon } from "@/components/Icon";
 import { CompleteTodayButton } from "@/components/CompleteTodayButton";
 import { ListenShareButtons } from "@/components/ListenShareButtons";
+import { formatDisplayDate, gematriyaNum } from "@/lib/hebrew-date";
 
 export default async function DailyPage() {
   const user = await requireLogin();
@@ -27,7 +28,7 @@ export default async function DailyPage() {
           <div className="md:col-span-2 card">
             <div className="flex items-center justify-between mb-3">
               <p className="font-semibold text-navy">
-                מסכת {today.tractate_name} — פרק {today.chapter}, משנה {today.mishna_num}
+                מסכת {today.tractate_name} — פרק {gematriyaNum(today.chapter)}, משנה {gematriyaNum(today.mishna_num)}
               </p>
               <Link href={`/tractate/${today.tractate_slug}`} className="text-xs text-gold-dark hover:underline">
                 למסכת המלאה
@@ -59,9 +60,9 @@ export default async function DailyPage() {
           <div className="card !p-0 overflow-hidden divide-y divide-gray-100">
             {upcoming.map((row, i) => (
               <div key={i} className="flex items-center justify-between px-6 py-3 text-sm">
-                <span className="text-ink/50">{row.study_date}</span>
+                <span className="text-ink/50">{formatDisplayDate(row.study_date, user.date_display)}</span>
                 <span className="text-navy font-medium">
-                  מסכת {row.tractate_name} — פרק {row.chapter}, משנה {row.mishna_num}
+                  מסכת {row.tractate_name} — פרק {gematriyaNum(row.chapter)}, משנה {gematriyaNum(row.mishna_num)}
                 </span>
               </div>
             ))}

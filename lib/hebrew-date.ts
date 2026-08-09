@@ -102,3 +102,30 @@ export function daysBetween(a: Date, b: Date): number {
   end.setHours(0, 0, 0, 0);
   return Math.round((end.getTime() - start.getTime()) / msPerDay);
 }
+
+/** גימטריה למספר "רגיל" (פרק/משנה) — לא קשור ליום בחודש, אבל אותה שיטת תצוגה. */
+export function gematriyaNum(n: number): string {
+  return gematriya(n);
+}
+
+/** פרסור בטוח של תאריך "YYYY-MM-DD" ממסד הנתונים (ללא הזזת אזור זמן). */
+export function parseDbDate(dateStr: string): Date {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+export type DateDisplayMode = "hebrew" | "both";
+
+/**
+ * מציג תאריך "YYYY-MM-DD" ממסד הנתונים לפי העדפת המשתמש: עברי בלבד, או עברי + לועזי.
+ */
+export function formatDisplayDate(dateStr: string, mode: DateDisplayMode): string {
+  const hebrew = formatHebrewDateFull(parseDbDate(dateStr));
+  return mode === "both" ? `${hebrew} (${dateStr})` : hebrew;
+}
+
+/** חודש עברי + שנה בלבד (ללא יום) — לכותרות קיבוץ. */
+export function formatHebrewMonthYear(date: Date): string {
+  const parts = gregorianToHebrewParts(date);
+  return `${hebrewMonthNameHe(parts.monthName)} ${gematriya(parts.year)}`;
+}

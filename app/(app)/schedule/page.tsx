@@ -2,6 +2,7 @@ import { requireLogin } from "@/lib/auth";
 import { requireCurrentPage } from "@/lib/current-page";
 import { getMemberScheduleUpcoming } from "@/lib/study-pages";
 import { Icon } from "@/components/Icon";
+import { formatDisplayDate, formatHebrewMonthYear, gematriyaNum, parseDbDate } from "@/lib/hebrew-date";
 
 export default async function SchedulePage() {
   const user = await requireLogin();
@@ -23,7 +24,7 @@ export default async function SchedulePage() {
       </h1>
       <p className="text-ink/60 text-sm mb-6">
         לוח הלימוד האישי שלכם בעמוד &quot;{page.name_he}&quot;, בנוי מתוך המסכתות שתפסתם ופרוש עד ליעד{" "}
-        {page.target_end_date}.
+        {formatDisplayDate(page.target_end_date, user.date_display)}.
       </p>
 
       {upcoming.length === 0 ? (
@@ -31,7 +32,10 @@ export default async function SchedulePage() {
       ) : (
         Array.from(byMonth.entries()).map(([month, rows]) => (
           <div key={month} className="mb-6">
-            <h2 className="font-bold text-navy text-sm mb-2">{month}</h2>
+            <h2 className="font-bold text-navy text-sm mb-2">
+              {formatHebrewMonthYear(parseDbDate(`${month}-01`))}
+              {user.date_display === "both" && <span className="text-ink/40 font-normal"> · {month}</span>}
+            </h2>
             <div className="card !p-0 overflow-hidden divide-y divide-gray-100">
               {rows.map((row, i) => (
                 <div
@@ -41,11 +45,11 @@ export default async function SchedulePage() {
                   }`}
                 >
                   <span className={row.study_date === today ? "font-bold text-gold-dark" : "text-ink/50"}>
-                    {row.study_date}
+                    {formatDisplayDate(row.study_date, user.date_display)}
                     {row.study_date === today && " (היום)"}
                   </span>
                   <span className="text-navy font-medium">
-                    מסכת {row.tractate_name} — פרק {row.chapter}, משנה {row.mishna_num}
+                    מסכת {row.tractate_name} — פרק {gematriyaNum(row.chapter)}, משנה {gematriyaNum(row.mishna_num)}
                   </span>
                 </div>
               ))}

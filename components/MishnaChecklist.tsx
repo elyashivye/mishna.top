@@ -8,7 +8,9 @@ import { toggleMishnaAction } from "@/lib/actions/progress-actions";
 export interface ChecklistMishna {
   id: number;
   chapter: number;
+  chapterHe: string;
   mishna_num: number;
+  mishnaNumHe: string;
   text_he: string | null;
   progress_id: number | null;
 }
@@ -52,7 +54,7 @@ export function MishnaChecklist({ mishnayot, readOnly }: { mishnayot: ChecklistM
     <div className="space-y-6">
       {chapters.map(([chapter, items]) => (
         <div key={chapter}>
-          <h3 className="font-bold text-navy text-sm mb-2">פרק {chapter}</h3>
+          <h3 className="font-bold text-navy text-sm mb-2">פרק {items[0].chapterHe}</h3>
           <div className="card !p-0 overflow-hidden divide-y divide-gray-100">
             {items.map((m) => {
               const isDone = completed.has(m.id);
@@ -74,7 +76,7 @@ export function MishnaChecklist({ mishnayot, readOnly }: { mishnayot: ChecklistM
                     <Icon name="check" className="w-3.5 h-3.5" />
                   </span>
                   <span>
-                    <span className="block text-xs text-ink/50 mb-1">משנה {m.mishna_num}</span>
+                    <span className="block text-xs text-ink/50 mb-1">משנה {m.mishnaNumHe}</span>
                     <span className={`block text-[15px] leading-loose ${isDone ? "text-ink/50" : "text-ink/85"}`}>
                       {m.text_he}
                     </span>

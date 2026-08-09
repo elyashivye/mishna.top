@@ -2,6 +2,7 @@ import { requireLogin } from "@/lib/auth";
 import { getNotificationPreferences } from "@/lib/notifications";
 import { Icon } from "@/components/Icon";
 import { saveNotificationPreferencesAction } from "@/lib/actions/notification-actions";
+import { saveDateDisplayAction } from "@/lib/actions/settings-actions";
 
 export default async function SettingsPage({
   searchParams,
@@ -18,6 +19,10 @@ export default async function SettingsPage({
         <Icon name="gear" className="w-6 h-6 text-gold" /> הגדרות
       </h1>
 
+      {saved === "1" && (
+        <div className="rounded-lg bg-gold/10 text-gold-dark text-sm px-4 py-2.5 mb-6">ההעדפות נשמרו בהצלחה.</div>
+      )}
+
       <div className="card mb-6">
         <h2 className="font-bold text-navy mb-3">פרטי חשבון</h2>
         <p className="text-sm text-ink/70">
@@ -30,15 +35,40 @@ export default async function SettingsPage({
         </p>
       </div>
 
+      <div className="card mb-6">
+        <h2 className="font-bold text-navy mb-1">תצוגת תאריכים</h2>
+        <p className="text-ink/50 text-xs mb-4">
+          איך להציג תאריכים במערכת (לוח לימוד, יעדי סיום וכו&apos;) — תאריך עברי תמיד מוצג; אפשר להוסיף לצידו גם
+          תאריך לועזי.
+        </p>
+
+        <form action={saveDateDisplayAction} className="space-y-3">
+          {[
+            { value: "hebrew", label: "עברי בלבד" },
+            { value: "both", label: "עברי + לועזי" },
+          ].map((opt) => (
+            <label key={opt.value} className="flex items-center gap-2.5 text-sm text-ink/70">
+              <input
+                type="radio"
+                name="date_display"
+                value={opt.value}
+                defaultChecked={user.date_display === opt.value}
+                className="w-4 h-4"
+              />
+              {opt.label}
+            </label>
+          ))}
+          <button type="submit" className="btn-pill bg-navy text-white hover:bg-navy-light">
+            שמירה
+          </button>
+        </form>
+      </div>
+
       <div className="card">
         <h2 className="font-bold text-navy mb-1">העדפות תזכורות</h2>
         <p className="text-ink/50 text-xs mb-4">
           קבלו תזכורת ב-WhatsApp ו/או במייל כדי לא לפספס יום לימוד.
         </p>
-
-        {saved === "1" && (
-          <div className="rounded-lg bg-gold/10 text-gold-dark text-sm px-4 py-2.5 mb-4">ההעדפות נשמרו בהצלחה.</div>
-        )}
 
         <form action={saveNotificationPreferencesAction} className="space-y-5">
           <label className="flex items-center gap-3 has-[:checked]:text-navy text-ink/70">

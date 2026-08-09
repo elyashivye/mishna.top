@@ -3,6 +3,7 @@ import { currentUser } from "@/lib/auth";
 import { getStudyPageByInviteCode } from "@/lib/study-pages";
 import { getDedicationDateDisplay } from "@/lib/study-pages";
 import { Icon } from "@/components/Icon";
+import { formatDisplayDate } from "@/lib/hebrew-date";
 import { joinAction } from "./actions";
 
 export default async function JoinPage({
@@ -52,7 +53,7 @@ export default async function JoinPage({
             {dedicationDate && <p className="text-ink/50 text-sm mb-4">{dedicationDate.hebrew_display}</p>}
             <p className="text-ink/60 text-sm mb-6">
               הצטרפו לעמוד הלימוד הקבוצתי הזה, ובחרו מסכת פנויה ללימוד לפי הקצב שנקבע (יעד:{" "}
-              {page.target_end_date}).
+              {formatDisplayDate(page.target_end_date, user.date_display)}).
             </p>
             <form action={joinAction}>
               <input type="hidden" name="code" value={code} />

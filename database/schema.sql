@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(190) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NULL,
   google_id VARCHAR(64) NULL UNIQUE,
+  date_display ENUM('hebrew','both') NOT NULL DEFAULT 'both',
   streak_count INT UNSIGNED NOT NULL DEFAULT 0,
   longest_streak INT UNSIGNED NOT NULL DEFAULT 0,
   last_study_date DATE NULL,
