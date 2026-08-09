@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { safeNextUrl } from "@/lib/url";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 import { registerAction } from "./actions";
 
 export default async function RegisterPage({
@@ -79,6 +80,7 @@ export default async function RegisterPage({
               הרשמה
             </button>
           </form>
+          <GoogleSignInButton next={next} />
           <p className="text-center text-sm text-ink/60 mt-4">
             כבר יש לך חשבון?{" "}
             <Link href={`/login?next=${encodeURIComponent(next)}`} className="text-gold-dark font-semibold hover:underline">

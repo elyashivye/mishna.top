@@ -89,7 +89,10 @@ export async function attemptLogin(
   const normalizedEmail = email.trim().toLowerCase();
   const user = await queryOne<User>("SELECT * FROM users WHERE email = ?", [normalizedEmail]);
 
-  if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+  if (!user || !user.password_hash) {
+    return { ok: false, error: "אימייל או סיסמה שגויים." };
+  }
+  if (!(await bcrypt.compare(password, user.password_hash))) {
     return { ok: false, error: "אימייל או סיסמה שגויים." };
   }
 
@@ -103,4 +106,42 @@ export async function attemptLogin(
 export async function logoutUser(): Promise<void> {
   const session = await getSession();
   session.destroy();
+}
+
+export interface GoogleProfile {
+  googleId: string;
+  email: string;
+  name: string;
+}
+
+/**
+ * מוצא משתמש קיים לפי google_id, מקשר google_id לחשבון קיים לפי אימייל
+ * (אם נרשם בעבר עם אימייל+סיסמה), או יוצר משתמש חדש ללא סיסמה — ואז מתחבר.
+ */
+export async function findOrCreateGoogleUser(profile: GoogleProfile): Promise<User> {
+  const normalizedEmail = profile.email.trim().toLowerCase();
+
+  let user = await queryOne<User>("SELECT * FROM users WHERE google_id = ?", [profile.googleId]);
+
+  if (!user) {
+    const byEmail = await queryOne<User>("SELECT * FROM users WHERE email = ?", [normalizedEmail]);
+    if (byEmail) {
+      await execute("UPDATE users SET google_id = ? WHERE id = ?", [profile.googleId, byEmail.id]);
+      user = { ...byEmail, google_id: profile.googleId };
+    }
+  }
+
+  if (!user) {
+    const result = await execute(
+      "INSERT INTO users (name, email, password_hash, google_id) VALUES (?, ?, NULL, ?)",
+      [profile.name.trim().slice(0, 100) || normalizedEmail, normalizedEmail, profile.googleId]
+    );
+    user = await queryOne<User>("SELECT * FROM users WHERE id = ?", [result.insertId]);
+  }
+
+  const session = await getSession();
+  session.userId = user!.id;
+  await session.save();
+
+  return user!;
 }

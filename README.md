@@ -92,9 +92,35 @@ Node.js), המחובר ישירות ל-GitHub — לא לאחסון המשותף
    Hostinger → Databases, `SESSION_SECRET` אקראי, `APP_URL` עם הדומיין
    האמיתי, וכו').
 4. **מסד הנתונים**: צרו מסד MySQL תחת hPanel → Databases → MySQL Databases,
-   והריצו את `database/schema.sql` (ולאחר מכן את סקריפט ה-import) דרך
-   phpMyAdmin או חיבור מרוחק.
+   ומלאו את פרטיו (`DB_HOST`/`DB_NAME`/`DB_USER`/`DB_PASSWORD`) במשתני הסביבה.
+   אין צורך בגישה מרוחקת למסד — ראו "הקמת מסד הנתונים בפרודקשן" למטה.
 5. כל push לענף המחובר מפעיל build+deploy אוטומטי.
+
+### הקמת מסד הנתונים בפרודקשן — `/api/setup`
+
+אחרי הדיפלוי הראשון (עם `DB_*` ו-`SETUP_SECRET` מוגדרים במשתני הסביבה), פתחו
+בדפדפן — פעם אחת בלבד — את:
+
+```
+https://<הדומיין שלכם>/api/setup?secret=<SETUP_SECRET>
+```
+
+זה ירוץ על השרת עצמו (עם חיבור ה-DB שכבר מוגדר לו) וייצור את כל הטבלאות + ייבא
+את 63 המסכתות וכל טקסט המשניות מ-Sefaria — בלי צורך בגישה מרוחקת למסד או
+בהרצת סקריפטים ידנית. הפעולה אידמפוטנטית — ניתן לפתוח שוב בבטחה אם היא נכשלה
+באמצע (לדוגמה עקב timeout בדפדפן על ייבוא התוכן, שלוקח כמה דקות).
+
+אם ההרצה המשולבת איטית מדי/נחתכת, אפשר לפצל לשני שלבים נפרדים:
+
+```
+.../api/setup?secret=<SETUP_SECRET>&step=schema      # רק טבלאות, מהיר
+.../api/setup?secret=<SETUP_SECRET>&step=mishnayot   # רק ייבוא תוכן, כמה דקות
+```
+
+ולבדוק את המצב הנוכחי (לא משנה כלום) עם `&step=status`.
+
+**אחרי שההקמה הצליחה, מומלץ למחוק את `SETUP_SECRET` ממשתני הסביבה בהוסטינגר** —
+הנתיב יחסום כל בקשה בלי הסוד הנכון, אבל אין סיבה להשאיר אותו מוגדר.
 
 ### תזכורות אוטומטיות (Cron)
 
@@ -125,6 +151,26 @@ WhatsApp כבויות בשקט, שאר המערכת ממשיכה לעבוד כר
 5. מלאו ב-`.env.local`/במשתני הסביבה בפרודקשן: `WHATSAPP_PHONE_NUMBER_ID`,
    `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_API_VERSION` (למשל `v20.0`).
 
+## הקמת התחברות עם Google
+
+התחברות/הרשמה עם Google היא **תוספת** לצד אימייל+סיסמה — לא מחליפה אותם. כל
+עוד `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` ריקים, כפתור "התחברות עם Google"
+פשוט לא מוצג, ושאר המערכת עובדת רגיל.
+
+1. ב-[Google Cloud Console](https://console.cloud.google.com/) → **APIs & Services
+   → Credentials** → צרו **OAuth client ID** מסוג **Web application**.
+2. במסך ה-**OAuth consent screen**, הוסיפו שם לאפליקציה ולוגו (אופציונלי),
+   וסקופים בסיסיים (`openid`, `email`, `profile` — נבחרים אוטומטית).
+3. תחת **Authorized redirect URIs** בפרטי ה-Client, הוסיפו בדיוק:
+   ```
+   https://<הדומיין שלכם>/auth/google/callback
+   ```
+   (ולפיתוח מקומי גם `http://localhost:3000/auth/google/callback`).
+4. העתיקו את ה-**Client ID** וה-**Client secret** שנוצרו, ומלאו אותם ב-
+   `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` במשתני הסביבה.
+5. משתמש שנרשם בעבר עם אותו אימייל דרך אימייל+סיסמה, ואז מתחבר עם Google —
+   מקושר אוטומטית לאותו חשבון (לא נוצר כפול).
+
 ## הקמת מייל (SMTP)
 
 כל עוד `SMTP_HOST`/`SMTP_USER`/`SMTP_PASSWORD` ריקים — תזכורות מייל כבויות
@@ -136,10 +182,12 @@ WhatsApp כבויות בשקט, שאר המערכת ממשיכה לעבוד כר
 ```
 app/                 App Router: עמודים, layouts, route handlers, server actions
   (app)/             עמודים שדורשים התחברות (עטופים ב-AppShell)
+  auth/google/       זרימת OAuth מול Google (redirect + callback)
   api/cron/          נקודת קצה ל-cron התזכורות
+  api/setup/         נקודת קצה חד-פעמית להקמת מסד הנתונים בפרודקשן
 lib/                 שכבת נתונים ולוגיקה עסקית (DB, auth, study-pages, progress, hebrew-date...)
 lib/actions/         Server Actions
-lib/services/        WhatsApp / Email / מנוע תזכורות
+lib/services/        WhatsApp / Email / מנוע תזכורות / Google OAuth / הקמת מסד נתונים
 components/          רכיבי UI משותפים (חלקם Client Components)
 database/            schema.sql + נתוני מסכתות (tractates-data.ts)
 scripts/             סקריפט ייבוא Sefaria (מריצים עם tsx, מחוץ ל-Next.js runtime)

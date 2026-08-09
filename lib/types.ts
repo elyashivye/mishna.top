@@ -2,7 +2,8 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  password_hash: string;
+  password_hash: string | null;
+  google_id: string | null;
   streak_count: number;
   longest_streak: number;
   last_study_date: string | null;
