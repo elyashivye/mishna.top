@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireLogin } from "@/lib/auth";
 import { requireCurrentPage } from "@/lib/current-page";
 import { getUserStudyDaysInMonth } from "@/lib/progress";
-import { gregorianToHebrewParts, hebrewMonthNameHe } from "@/lib/hebrew-date";
+import { gregorianToHebrewParts, formatHebrewDayMonth } from "@/lib/hebrew-date";
 import { Icon } from "@/components/Icon";
 
 const WEEKDAYS_HE = ["א", "ב", "ג", "ד", "ה", "ו", "ש"];
@@ -50,7 +50,7 @@ export default async function CalendarPage({
     cells.push({
       day: d,
       dateStr,
-      hebrew: `${hebrewParts.day} ${hebrewMonthNameHe(hebrewParts.monthName)}`,
+      hebrew: formatHebrewDayMonth(hebrewParts.monthName, hebrewParts.day),
       isToday: dateStr === todayStr,
       isYahrzeit,
     });
