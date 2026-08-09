@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS mishnayot (
   chapter INT UNSIGNED NOT NULL,
   mishna_num INT UNSIGNED NOT NULL,
   text_he MEDIUMTEXT NULL,
+  bartenura_he MEDIUMTEXT NULL,
   sefaria_ref VARCHAR(100) NOT NULL,
   sort_order INT UNSIGNED NOT NULL,
   FOREIGN KEY (tractate_id) REFERENCES tractates(id) ON DELETE CASCADE,

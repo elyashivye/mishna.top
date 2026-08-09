@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
-import { runSchemaSetup, runSefariaImport, getSetupStatus } from "@/lib/services/setup-service";
+import { runSchemaSetup, runSefariaImport, runBartenuraImport, getSetupStatus } from "@/lib/services/setup-service";
 
 /**
  * הקמה חד-פעמית של מסד הנתונים בפרודקשן — נפתח כלינק בדפדפן (לא דורש גישה
  * מרוחקת למסד; רץ על השרת עם משתני הסביבה שכבר מוגדרים שם).
- *   https://mishna.top/api/setup?secret=<SETUP_SECRET>              — הכל (סכמה + תוכן)
+ *   https://mishna.top/api/setup?secret=<SETUP_SECRET>              — הכל (סכמה + תוכן + ברטנורא)
  *   https://mishna.top/api/setup?secret=<SETUP_SECRET>&step=schema  — רק טבלאות (מהיר)
  *   https://mishna.top/api/setup?secret=<SETUP_SECRET>&step=mishnayot — רק ייבוא תוכן (איטי, כמה דקות)
+ *   https://mishna.top/api/setup?secret=<SETUP_SECRET>&step=bartenura — רק ייבוא פירוש ברטנורא (איטי, כמה דקות)
  *   https://mishna.top/api/setup?secret=<SETUP_SECRET>&step=status  — בדיקת מצב בלבד, לא משנה כלום
  * כל הפעולות אידמפוטנטיות — אפשר להריץ שוב בבטחה אם משהו נכשל באמצע.
  */
@@ -57,6 +58,7 @@ export async function GET(request: Request) {
           <li>משתמשים: ${status.users}</li>
           <li>מסכתות: ${status.tractates}</li>
           <li>משניות: ${status.mishnayot}</li>
+          <li>משניות עם פירוש ברטנורא: ${status.bartenura}</li>
           <li>עמודי לימוד: ${status.studyPages}</li>
         </ul>`,
         status.initialized
@@ -80,6 +82,19 @@ export async function GET(request: Request) {
         "הייבוא הצליח",
         `<h1>תוכן המשניות יובא בהצלחה ✅</h1>
          <p>${result.tractates} מסכתות, ${result.mishnayot} משניות.</p>
+         <p>עכשיו אפשר לייבא גם את פירוש ברטנורא (אופציונלי, איטי):</p>
+         <p><a href="/api/setup?secret=${encodeURIComponent(secret)}&step=bartenura">${publicOrigin}/api/setup?secret=***&amp;step=bartenura</a></p>
+         <p>או ישר להתחיל להשתמש: <a href="/register">${publicOrigin}/register</a></p>`,
+        true
+      );
+    }
+
+    if (step === "bartenura") {
+      const result = await runBartenuraImport();
+      return htmlPage(
+        "פירוש ברטנורא יובא",
+        `<h1>פירוש ברטנורא יובא בהצלחה ✅</h1>
+         <p>${result.tractates} מסכתות, פירוש ל-${result.mishnayot} משניות.</p>
          <p>המערכת מוכנה לשימוש: <a href="/register">${publicOrigin}/register</a></p>`,
         true
       );
@@ -88,10 +103,12 @@ export async function GET(request: Request) {
     // step === "all"
     await runSchemaSetup();
     const result = await runSefariaImport();
+    const bartenuraResult = await runBartenuraImport();
     return htmlPage(
       "ההקמה הושלמה",
       `<h1>ההקמה הושלמה בהצלחה ✅</h1>
-       <p>הטבלאות נוצרו, ו-${result.tractates} מסכתות (${result.mishnayot} משניות) יובאו.</p>
+       <p>הטבלאות נוצרו, ${result.tractates} מסכתות (${result.mishnayot} משניות) יובאו, ופירוש ברטנורא נוסף
+       ל-${bartenuraResult.mishnayot} משניות.</p>
        <p>המערכת מוכנה לשימוש: <a href="/register">${publicOrigin}/register</a></p>
        <p style="color:#6b7280;font-size:.85em">מומלץ כעת למחוק את משתנה הסביבה <code>SETUP_SECRET</code> בהוסטינגר.</p>`,
       true

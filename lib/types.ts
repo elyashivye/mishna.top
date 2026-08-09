@@ -28,6 +28,7 @@ export interface Mishna {
   chapter: number;
   mishna_num: number;
   text_he: string | null;
+  bartenura_he: string | null;
   sefaria_ref: string;
   sort_order: number;
 }

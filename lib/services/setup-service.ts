@@ -1,4 +1,3 @@
-import "server-only";
 import fs from "fs";
 import path from "path";
 import mysql from "mysql2/promise";
@@ -47,6 +46,9 @@ async function runSchemaMigrations(): Promise<void> {
     await execute(
       "ALTER TABLE users ADD COLUMN date_display ENUM('hebrew','both') NOT NULL DEFAULT 'both' AFTER google_id"
     );
+  }
+  if (!(await columnExists("mishnayot", "bartenura_he"))) {
+    await execute("ALTER TABLE mishnayot ADD COLUMN bartenura_he MEDIUMTEXT NULL AFTER text_he");
   }
 }
 
@@ -135,21 +137,87 @@ export async function runSefariaImport(onProgress?: (message: string) => void): 
   return { tractates: TRACTATES_DATA.length, mishnayot: totalMishnayot };
 }
 
+export interface BartenuraImportResult {
+  tractates: number;
+  mishnayot: number;
+}
+
+function buildBartenuraUrl(t: TractateSeed): string {
+  const seder = t.seder.charAt(0).toUpperCase() + t.seder.slice(1);
+  const path = `json/Mishnah/Rishonim on Mishnah/Bartenura/Seder ${seder}/Bartenura on ${t.sefaria_title}/Hebrew/merged.json`;
+  return `https://storage.googleapis.com/sefaria-export/${encodeURI(path)}`;
+}
+
+function stripHtmlTags(text: string): string {
+  return text
+    .replace(/<\/?[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .trim();
+}
+
+/**
+ * מייבא/מעדכן את פירוש ר' עובדיה מברטנורא (רישונים, פומבי-דומיין — נפטר ~1515)
+ * על כל 63 המסכתות, מ-Sefaria-Export. אידמפוטנטי; מתאים מסכתות/פרקים/משניות
+ * לפי (tractate slug, chapter, mishna_num) שכבר קיימים מ-runSefariaImport.
+ */
+export async function runBartenuraImport(onProgress?: (message: string) => void): Promise<BartenuraImportResult> {
+  const pool = db();
+  let totalMishnayot = 0;
+
+  for (const t of TRACTATES_DATA) {
+    onProgress?.(`מייבא פירוש ברטנורא: ${t.name_he} (${t.title_en})...`);
+
+    const [idRows] = await pool.query("SELECT id FROM tractates WHERE slug = ?", [t.slug]);
+    const tractateRow = (idRows as { id: number }[])[0];
+    if (!tractateRow) continue; // המסכתה עצמה עוד לא יובאה — יש להריץ קודם את runSefariaImport
+    const tractateId = tractateRow.id;
+
+    let data: SefariaResponse;
+    try {
+      data = await fetchSefariaJson(buildBartenuraUrl(t));
+    } catch {
+      continue; // לא כל המסכתות/מהדורות זהות; דילוג על מסכת בודדת לא אמור לקרות בפועל (וידאנו 63/63)
+    }
+    const chapters = data.text;
+
+    for (let chapterIndex = 0; chapterIndex < chapters.length; chapterIndex++) {
+      const mishnayotInChapter = chapters[chapterIndex];
+      for (let mishnaIndex = 0; mishnaIndex < mishnayotInChapter.length; mishnaIndex++) {
+        const chapterNum = chapterIndex + 1;
+        const mishnaNum = mishnaIndex + 1;
+        const raw = mishnayotInChapter[mishnaIndex];
+        const text = raw ? stripHtmlTags(Array.isArray(raw) ? raw.join(" ") : raw) : "";
+        if (!text) continue;
+
+        await pool.query(
+          `UPDATE mishnayot SET bartenura_he = ? WHERE tractate_id = ? AND chapter = ? AND mishna_num = ?`,
+          [text, tractateId, chapterNum, mishnaNum]
+        );
+        totalMishnayot++;
+      }
+    }
+  }
+
+  return { tractates: TRACTATES_DATA.length, mishnayot: totalMishnayot };
+}
+
 export interface SetupStatus {
   initialized: boolean;
   users: number;
   tractates: number;
   mishnayot: number;
+  bartenura: number;
   studyPages: number;
   error?: string;
 }
 
 export async function getSetupStatus(): Promise<SetupStatus> {
   try {
-    const [u, t, m, p] = await Promise.all([
+    const [u, t, m, b, p] = await Promise.all([
       queryOne<{ c: number }>("SELECT COUNT(*) AS c FROM users"),
       queryOne<{ c: number }>("SELECT COUNT(*) AS c FROM tractates"),
       queryOne<{ c: number }>("SELECT COUNT(*) AS c FROM mishnayot"),
+      queryOne<{ c: number }>("SELECT COUNT(*) AS c FROM mishnayot WHERE bartenura_he IS NOT NULL"),
       queryOne<{ c: number }>("SELECT COUNT(*) AS c FROM study_pages"),
     ]);
     return {
@@ -157,6 +225,7 @@ export async function getSetupStatus(): Promise<SetupStatus> {
       users: u?.c ?? 0,
       tractates: t?.c ?? 0,
       mishnayot: m?.c ?? 0,
+      bartenura: b?.c ?? 0,
       studyPages: p?.c ?? 0,
     };
   } catch (err) {
@@ -165,6 +234,7 @@ export async function getSetupStatus(): Promise<SetupStatus> {
       users: 0,
       tractates: 0,
       mishnayot: 0,
+      bartenura: 0,
       studyPages: 0,
       error: err instanceof Error ? err.message : String(err),
     };
