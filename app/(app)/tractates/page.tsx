@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { requireLogin } from "@/lib/auth";
 import { requireCurrentPage } from "@/lib/current-page";
 import { getPageTractatesWithClaimStatus, getPageGroupStats } from "@/lib/study-pages";
 import { Icon } from "@/components/Icon";
-import { TractateClaimCard } from "@/components/TractateClaimCard";
+import { TractateSearchGrid } from "@/components/TractateSearchGrid";
 
 export default async function TractatesPage() {
   const user = await requireLogin();
@@ -31,31 +30,7 @@ export default async function TractatesPage() {
         </p>
       )}
 
-      {page.mode === "solo" ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tractates.map((t) => (
-            <Link
-              key={t.id}
-              href={`/tractate/${t.slug}`}
-              className="card flex items-center justify-between hover:shadow-card-lg transition"
-            >
-              <div>
-                <p className="font-semibold text-navy text-sm">מסכת {t.name_he}</p>
-                <p className="text-xs text-ink/50 mt-0.5">
-                  {t.chapter_count} פרקים · {t.mishna_count} משניות
-                </p>
-              </div>
-              <Icon name="chevron-start" className="w-4 h-4 text-ink/30 -rotate-90" />
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tractates.map((t) => (
-            <TractateClaimCard key={t.id} tractate={t} />
-          ))}
-        </div>
-      )}
+      <TractateSearchGrid tractates={tractates} mode={page.mode} />
     </div>
   );
 }
