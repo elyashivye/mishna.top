@@ -27,6 +27,9 @@ const PATHS: Record<string, string> = {
   lock: '<rect x="5" y="10.5" width="14" height="9" rx="1.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
   mail: '<rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/><path d="M4 6.5l8 6.5 8-6.5"/>',
   search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-5-5"/>',
+  users: '<circle cx="9" cy="8" r="3"/><path d="M3 20c.7-3 3-5 6-5s5.3 2 6 5"/><circle cx="17" cy="9" r="2.3"/><path d="M15.5 12.3c2.3.3 4 1.9 4.5 4.2"/>',
+  chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
 };
 
 export function Icon({ name, className = "w-5 h-5" }: { name: string; className?: string }) {
