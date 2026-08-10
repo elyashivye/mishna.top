@@ -4,6 +4,10 @@ import { getUserStats, isMishnaCompletedByUser } from "@/lib/progress";
 import {
   getPageStats,
   getMemberTodayMishna,
+  getMemberTodayProgress,
+  getProgressHistory,
+  getCurrentTractateProgress,
+  getRecentActivity,
   getMyClaimedTractatesWithProgress,
   getPageMembers,
   getPageGroupStats,
@@ -14,6 +18,9 @@ import { Icon } from "@/components/Icon";
 import { CompleteTodayButton } from "@/components/CompleteTodayButton";
 import { ListenShareButtons } from "@/components/ListenShareButtons";
 import { CopyInviteButton } from "@/components/CopyInviteButton";
+import { ProgressChart } from "@/components/ProgressChart";
+import { ChapterNavigator } from "@/components/ChapterNavigator";
+import { RecentActivity } from "@/components/RecentActivity";
 import { formatDisplayDate, formatHebrewDateFull, gematriyaNum } from "@/lib/hebrew-date";
 
 export default async function PageDashboard() {
@@ -30,6 +37,11 @@ export default async function PageDashboard() {
   const myTractates = await getMyClaimedTractatesWithProgress(pageId, user.id);
   const members = page.mode === "group" ? await getPageMembers(pageId) : [];
   const groupStats = page.mode === "group" ? await getPageGroupStats(pageId) : null;
+  const todayProgress = await getMemberTodayProgress(pageId, user.id);
+  const todayPct = todayProgress.total > 0 ? Math.round((todayProgress.learned / todayProgress.total) * 100) : 0;
+  const progressHistory = await getProgressHistory(pageId, user.id);
+  const currentTractate = await getCurrentTractateProgress(pageId, user.id);
+  const recentActivity = await getRecentActivity(pageId, user.id);
 
   const inviteLink = page.invite_code
     ? `${process.env.APP_URL ?? ""}/join?code=${page.invite_code}`
@@ -74,33 +86,50 @@ export default async function PageDashboard() {
           </p>
         </div>
 
-        {/* באנר גיבור */}
-        <div className="md:col-span-2 card relative overflow-hidden flex items-center">
+        {/* באנר גיבור — החלק היומי */}
+        <div className="md:col-span-2 card relative overflow-hidden flex items-center gap-6 flex-wrap sm:flex-nowrap">
           <div className="absolute inset-0 bg-gradient-to-l from-navy via-navy-light to-gold/70 opacity-90" />
           <div
             className="absolute inset-0"
             style={{ backgroundImage: "radial-gradient(circle at 85% 30%, rgba(255,255,255,0.25), transparent 55%)" }}
           />
-          <div className="relative z-10 text-white px-2 py-4">
+          <div className="relative z-10 text-white px-2 py-4 flex-1 min-w-[180px]">
             <p className="text-xs tracking-widest text-white/70 mb-2">בע&quot;ה</p>
             <h1 className="text-2xl md:text-3xl font-extrabold leading-tight">
-              לימוד משנה
+              החלק היומי שלי
               <br />
               לעילוי נשמת
             </h1>
             <p className="text-white/85 text-sm mt-3 max-w-md leading-relaxed">
               הלימוד תורה לעילוי נשמת הנפטר ממשיך להאיר לו את נחת רוח בעולם העליון.
             </p>
+            <Link
+              href="/daily"
+              className="btn-pill bg-white text-navy hover:bg-white/90 mt-4 font-semibold"
+            >
+              <Icon name="sun" className="w-4 h-4" /> {todayProgress.learned >= todayProgress.total && todayProgress.total > 0 ? "צפייה בלימוד היום" : "התחל ללמוד"}
+            </Link>
           </div>
-          <div className="hidden md:flex relative z-10 me-4 ms-auto text-6xl opacity-90">🕯️📖</div>
+          {todayProgress.total > 0 && (
+            <div className="relative z-10 flex flex-col items-center gap-2 px-2 py-4">
+              <div className="progress-ring w-20 h-20" style={{ "--pct": todayPct, "--track-color": "rgba(255,255,255,0.25)" } as React.CSSProperties}>
+                <div className="progress-ring-inner w-16 h-16 flex flex-col items-center justify-center">
+                  <span className="text-navy font-extrabold text-sm">
+                    {todayProgress.learned}/{todayProgress.total}
+                  </span>
+                </div>
+              </div>
+              <span className="text-white/80 text-xs">משניות היום</span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* שורת סטטיסטיקות */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
         <div className="card flex items-center gap-3">
-          <span className="text-gold">
-            <Icon name="flame" className="w-8 h-8" />
+          <span className="w-11 h-11 rounded-full bg-gold-light text-gold-dark flex items-center justify-center flex-shrink-0">
+            <Icon name="flame" className="w-6 h-6" />
           </span>
           <div>
             <div className="text-2xl font-extrabold text-navy">{userStats.streak}</div>
@@ -108,8 +137,8 @@ export default async function PageDashboard() {
           </div>
         </div>
         <div className="card flex items-center gap-3">
-          <span className="text-gold">
-            <Icon name="book" className="w-8 h-8" />
+          <span className="w-11 h-11 rounded-full bg-gold-light text-gold-dark flex items-center justify-center flex-shrink-0">
+            <Icon name="book" className="w-6 h-6" />
           </span>
           <div>
             <div className="text-2xl font-extrabold text-navy">{pageStats.learned}</div>
@@ -117,7 +146,7 @@ export default async function PageDashboard() {
           </div>
         </div>
         <div className="card flex items-center gap-3">
-          <div className="progress-ring w-12 h-12" style={{ "--pct": pageStats.percent } as React.CSSProperties}>
+          <div className="progress-ring w-12 h-12 flex-shrink-0" style={{ "--pct": pageStats.percent } as React.CSSProperties}>
             <div className="progress-ring-inner w-9 h-9 flex items-center justify-center text-xs font-bold text-navy">
               {pageStats.percent}%
             </div>
@@ -127,8 +156,8 @@ export default async function PageDashboard() {
           </div>
         </div>
         <Link href="/daily" className="card flex items-center gap-3 hover:shadow-card-lg transition">
-          <span className="text-gold">
-            <Icon name="calendar" className="w-8 h-8" />
+          <span className="w-11 h-11 rounded-full bg-gold-light text-gold-dark flex items-center justify-center flex-shrink-0">
+            <Icon name="calendar" className="w-6 h-6" />
           </span>
           <div>
             <div className="font-bold text-navy text-sm">היום</div>
@@ -181,6 +210,31 @@ export default async function PageDashboard() {
             <p className="text-ink/60">לא נמצאה משנה יומית להיום.</p>
           )}
         </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-5 mt-5">
+        <div className="card">
+          <h2 className="font-bold text-navy text-lg mb-3 flex items-center gap-2">
+            <Icon name="chart" className="w-5 h-5 text-gold" /> התקדמות כולנו
+          </h2>
+          <ProgressChart points={progressHistory} dateDisplay={user.date_display} />
+        </div>
+
+        {currentTractate && (
+          <div className="card">
+            <h2 className="font-bold text-navy text-lg mb-3">
+              מסכת נוכחית · {currentTractate.tractate.name_he}
+            </h2>
+            <ChapterNavigator data={currentTractate} />
+          </div>
+        )}
+      </div>
+
+      <div className="hidden md:block card mt-5">
+        <h2 className="font-bold text-navy text-lg mb-3 flex items-center gap-2">
+          <Icon name="trophy" className="w-5 h-5 text-gold" /> הישגים אחרונים
+        </h2>
+        <RecentActivity items={recentActivity} />
       </div>
 
       {page.mode === "group" && (
