@@ -15,7 +15,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <AppShell
       user={{ id: user.id, name: user.name }}
-      pages={pages.map((p) => ({ id: p.id, name_he: p.name_he }))}
+      pages={pages.map((p) => ({ id: p.id, name_he: p.name_he, dtype: p.dtype }))}
       currentPageId={currentPageId}
     >
       {children}

@@ -26,11 +26,26 @@ const MOBILE_TABS = [
 export interface ShellPage {
   id: number;
   name_he: string;
+  dtype: "neshama" | "refuah";
 }
 
 export interface ShellUser {
   id: number;
   name: string;
+}
+
+function MemorialLeaf({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M49 42 Q30 26 14 10" stroke="#8aab73" strokeWidth="1.5" opacity="0.55" />
+      <ellipse cx="39" cy="25" rx="7.5" ry="3.2" fill="#7f9c6c" opacity="0.55" transform="rotate(-35 39 25)" />
+      <ellipse cx="27" cy="16" rx="6.5" ry="2.8" fill="#8aab73" opacity="0.5" transform="rotate(-42 27 16)" />
+      <ellipse cx="17" cy="9" rx="5.5" ry="2.4" fill="#96b880" opacity="0.45" transform="rotate(-48 17 9)" />
+      <rect x="44" y="42" width="10" height="42" rx="2.2" fill="#f3ead9" />
+      <ellipse cx="49" cy="39" rx="4.2" ry="7.5" fill="#e8c988" />
+      <ellipse cx="49" cy="37" rx="2.3" ry="4.3" fill="#fff6df" />
+    </svg>
+  );
 }
 
 export function AppShell({
@@ -150,32 +165,23 @@ export function AppShell({
 
         <main className="flex-1 px-4 md:px-10 pb-6 max-w-[1400px] w-full mx-auto">{children}</main>
 
-        <footer className="mt-8 px-4 md:px-10">
-          <div className="rounded-3xl bg-navy text-white px-6 md:px-10 py-8 flex flex-col md:flex-row items-center md:items-start justify-between gap-6 text-center md:text-start">
-            <div>
-              <div className="flex items-center gap-2 justify-center md:justify-start mb-1.5">
-                <span className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-lg">📖</span>
-                <span className="font-bold text-lg">משנה של נשמה</span>
+        {activePage && (
+          <footer className="mt-8 px-4 md:px-10">
+            <div className="relative overflow-hidden rounded-2xl bg-navy-dark py-8 px-6 md:px-16 flex items-center justify-center gap-4 md:gap-10">
+              <MemorialLeaf className="hidden sm:block w-16 h-16 md:w-20 md:h-20 flex-shrink-0 -scale-x-100" />
+              <div className="text-center">
+                <p className="text-cream/60 text-xs md:text-sm tracking-wide mb-1.5">
+                  {activePage.dtype === "refuah" ? "לרפואת" : "לעילוי נשמת"}
+                </p>
+                <p className="text-gold font-bold text-xl md:text-3xl leading-snug">{activePage.name_he}</p>
+                {activePage.dtype !== "refuah" && (
+                  <p className="text-cream/45 text-xs tracking-[0.2em] mt-2">ת.נ.צ.ב.ה</p>
+                )}
               </div>
-              <p className="text-white/55 text-sm">לומדים. זוכרים. מעלים נשמה.</p>
+              <MemorialLeaf className="hidden sm:block w-16 h-16 md:w-20 md:h-20 flex-shrink-0" />
             </div>
-
-            <nav className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-white/70">
-              {NAV_ITEMS.map((item) => (
-                <Link key={item.href} href={item.href} className="hover:text-white transition">
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-
-            <div className="flex flex-col items-center md:items-end gap-1.5">
-              <span className="flex items-center gap-2 text-gold text-sm font-medium">
-                <Icon name="candle" className="w-4 h-4" /> ת.נ.צ.ב.ה
-              </span>
-              <p className="text-white/40 text-xs">כל הזכויות שמורות · לעילוי נשמות ישראל</p>
-            </div>
-          </div>
-        </footer>
+          </footer>
+        )}
       </div>
 
       {/* תפריט תחתון — מובייל בלבד */}
