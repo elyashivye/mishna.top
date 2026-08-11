@@ -139,7 +139,7 @@ export function AppShell({
               <span className="w-9 h-9 rounded-full bg-navy text-white flex items-center justify-center text-sm font-bold">
                 {user.name.slice(0, 1)}
               </span>
-              <span className="font-medium text-sm hidden sm:inline">שלום {user.name}</span>
+              <span className="font-medium text-sm hidden sm:inline">שלום, {user.name}</span>
               <Icon name="chevron-start" className="w-4 h-4 -rotate-90" />
             </button>
             {userMenuOpen && (
@@ -157,10 +157,10 @@ export function AppShell({
 
         <main className="flex-1 px-4 md:px-10 pb-6 max-w-[1400px] w-full mx-auto">{children}</main>
 
-        <footer className="hidden md:block px-4 md:px-10 py-8 mt-6">
-          <div className="flex items-center justify-center gap-3 text-center flex-wrap">
+        <footer className="px-4 md:px-10 py-6 mt-6">
+          <div className="rounded-2xl bg-navy/6 py-5 px-4 flex items-center justify-center gap-3 text-center flex-wrap">
             <span className="text-gold">
-              <Icon name="heart" className="w-5 h-5" />
+              <Icon name="candle" className="w-6 h-6" />
             </span>
             <p className="text-ink/70 text-sm">
               <span className="font-semibold text-navy">&quot;{quote.text}&quot;</span>
