@@ -200,17 +200,3 @@ export async function getUserStudyDaysInMonth(userId: number, yearMonth: string)
   );
   return rows.map((r) => r.d);
 }
-
-export const FOOTER_QUOTES = [
-  { text: "גדול תלמוד שמביא לידי מעשה", source: "משנה, מסכת קידושין פרק א" },
-  { text: "הוי מתלמידיו של אהרן, אוהב שלום ורודף שלום, אוהב את הבריות ומקרבן לתורה", source: "משנה, מסכת אבות פרק א" },
-  { text: "אם אין אני לי מי לי, וכשאני לעצמי מה אני, ואם לא עכשיו אימתי", source: "משנה, מסכת אבות פרק א" },
-  { text: "איזהו חכם? הלומד מכל אדם", source: "משנה, מסכת אבות פרק ד" },
-  { text: "לא עליך המלאכה לגמור, ולא אתה בן חורין להיבטל ממנה", source: "משנה, מסכת אבות פרק ב" },
-  { text: "על שלושה דברים העולם עומד: על התורה, ועל העבודה, ועל גמילות חסדים", source: "משנה, מסכת אבות פרק א" },
-  { text: "עשה לך רב, וקנה לך חבר, והוי דן את כל האדם לכף זכות", source: "משנה, מסכת אבות פרק א" },
-];
-
-export function randomFooterQuote() {
-  return FOOTER_QUOTES[Math.floor(Math.random() * FOOTER_QUOTES.length)];
-}

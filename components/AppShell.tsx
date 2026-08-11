@@ -33,22 +33,15 @@ export interface ShellUser {
   name: string;
 }
 
-export interface FooterQuote {
-  text: string;
-  source: string;
-}
-
 export function AppShell({
   user,
   pages,
   currentPageId,
-  quote,
   children,
 }: {
   user: ShellUser;
   pages: ShellPage[];
   currentPageId: number | null;
-  quote: FooterQuote;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -157,15 +150,30 @@ export function AppShell({
 
         <main className="flex-1 px-4 md:px-10 pb-6 max-w-[1400px] w-full mx-auto">{children}</main>
 
-        <footer className="px-4 md:px-10 py-6 mt-6">
-          <div className="rounded-2xl bg-navy/6 py-5 px-4 flex items-center justify-center gap-3 text-center flex-wrap">
-            <span className="text-gold">
-              <Icon name="candle" className="w-6 h-6" />
-            </span>
-            <p className="text-ink/70 text-sm">
-              <span className="font-semibold text-navy">&quot;{quote.text}&quot;</span>
-              <span className="text-ink/50"> — {quote.source}</span>
-            </p>
+        <footer className="mt-8 px-4 md:px-10">
+          <div className="rounded-3xl bg-navy text-white px-6 md:px-10 py-8 flex flex-col md:flex-row items-center md:items-start justify-between gap-6 text-center md:text-start">
+            <div>
+              <div className="flex items-center gap-2 justify-center md:justify-start mb-1.5">
+                <span className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-lg">📖</span>
+                <span className="font-bold text-lg">משנה של נשמה</span>
+              </div>
+              <p className="text-white/55 text-sm">לומדים. זוכרים. מעלים נשמה.</p>
+            </div>
+
+            <nav className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-white/70">
+              {NAV_ITEMS.map((item) => (
+                <Link key={item.href} href={item.href} className="hover:text-white transition">
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="flex flex-col items-center md:items-end gap-1.5">
+              <span className="flex items-center gap-2 text-gold text-sm font-medium">
+                <Icon name="candle" className="w-4 h-4" /> ת.נ.צ.ב.ה
+              </span>
+              <p className="text-white/40 text-xs">כל הזכויות שמורות · לעילוי נשמות ישראל</p>
+            </div>
           </div>
         </footer>
       </div>
