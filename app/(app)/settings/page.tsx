@@ -2,7 +2,7 @@ import { requireLogin } from "@/lib/auth";
 import { getNotificationPreferences } from "@/lib/notifications";
 import { Icon } from "@/components/Icon";
 import { saveNotificationPreferencesAction } from "@/lib/actions/notification-actions";
-import { saveDateDisplayAction } from "@/lib/actions/settings-actions";
+import { saveDateDisplayAction, saveDisplayNameAction } from "@/lib/actions/settings-actions";
 
 export default async function SettingsPage({
   searchParams,
@@ -25,11 +25,22 @@ export default async function SettingsPage({
 
       <div className="card mb-6">
         <h2 className="font-bold text-navy mb-3">פרטי חשבון</h2>
+        <form action={saveDisplayNameAction} className="mb-4">
+          <label className="block text-xs text-ink/50 mb-1">שם מוצג</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              name="name"
+              defaultValue={user.name}
+              required
+              className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm"
+            />
+            <button type="submit" className="btn-pill bg-navy text-white hover:bg-navy-light">
+              שמירה
+            </button>
+          </div>
+        </form>
         <p className="text-sm text-ink/70">
-          <span className="text-ink/50">שם: </span>
-          {user.name}
-        </p>
-        <p className="text-sm text-ink/70 mt-1">
           <span className="text-ink/50">אימייל: </span>
           {user.email}
         </p>

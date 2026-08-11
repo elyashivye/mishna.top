@@ -13,3 +13,13 @@ export async function saveDateDisplayAction(formData: FormData): Promise<void> {
 
   redirect("/settings?saved=1");
 }
+
+export async function saveDisplayNameAction(formData: FormData): Promise<void> {
+  const user = await requireLogin();
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) redirect("/settings");
+
+  await execute("UPDATE users SET name = ? WHERE id = ?", [name, user.id]);
+
+  redirect("/settings?saved=1");
+}

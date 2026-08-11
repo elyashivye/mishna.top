@@ -130,11 +130,7 @@ export function AppShell({
       </aside>
 
       <div className="md:ms-72 min-h-screen flex flex-col pb-20 md:pb-0">
-        <header className="flex items-center justify-between px-4 md:px-10 py-5">
-          <Link href="/settings" className="text-navy/70 hover:text-navy" aria-label="התראות">
-            <Icon name="mail" className="w-6 h-6" />
-          </Link>
-
+        <header className="flex items-center px-4 md:px-10 py-5">
           <div className="relative">
             <button
               className="flex items-center gap-2 text-navy hover:opacity-80"
